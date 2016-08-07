@@ -1,0 +1,88 @@
+---
+
+## More
+## https://www.howtoforge.com/hardening-postfix-for-ispconfig-3
+
+- name: hardening of postfix - DNSBL
+  replace: dest=/etc/postfix/main.cf regexp="{{ item.re }}" replace="{{ item.l }}" backup=yes
+  with_items:
+    - { re: '^smtpd_recipient_restrictions = (.*)', l: 'smtpd_recipient_restrictions = \1,reject_rbl_client cbl.abuseat.org, reject_rbl_client b.barracudacentral.org' }
+  notify:
+    - restart postfix
+  when: hardenmail_postfix_dnsbl is defined and hardenmail_postfix_dnsbl
+
+- name: install SPF package for Postfix
+  apt: name=postfix-policyd-spf-python state=present
+#  apt: name=postfix-policyd-spf-perl state=present
+  when: hardenmail_postfix_spf is defined and hardenmail_postfix_spf
+
+- name: restrict listen to loopback only
+  lineinfile: dest=/etc/postfix/main.cf regexp="^inet_interfaces =" line="inet_interfaces = {{ hardenmail_postfix_listenif }}" backup=yes
+  when: hardenmail_postfix_restrictlisten is defined and hardenmail_postfix_restrictlisten
+  notify:
+    - restart postfix
+
+- name: hardening of postfix configuration
+  lineinfile: dest=/etc/postfix/main.cf regexp="{{ item.re }}" line="{{ item.l }}" backup=yes
+  with_items:
+## https://marc.info/?l=postfix-users&m=140058464921413&w=2
+## https://marc.info/?l=postfix-users&m=140059435225323&w=2
+#if it is *not* a public MX
+#smtpd_tls_exclude_ciphers = aNULL, eNULL, EXP, MD5, IDEA, KRB5, RC2, SEED, SRP
+    - { re: '^smtp_tls_exclude_ciphers =', l: 'smtp_tls_exclude_ciphers = EXPORT, LOW' }
+    - { re: '^smtpd_tls_exclude_ciphers =', l: 'smtpd_tls_exclude_ciphers = EXPORT, LOW' }
+    - { re: '^smtpd_banner =', l: 'smtpd_banner = $myhostname ESMTP Sorry, No banner' }
+## limit resource exhaustion
+    - { re: '^default_process_limit =', l: 'default_process_limit = 100' }
+    - { re: '^smtpd_client_connection_count_limit =', l: 'smtpd_client_connection_count_limit = 10' }
+    - { re: '^smtpd_client_connection_rate_limit =', l: 'smtpd_client_connection_rate_limit = 10' }
+    - { re: '^queue_minfree =', l: 'queue_minfree = 20971520' }
+    - { re: '^header_size_limit =', l: 'header_size_limit = 51200' }
+    - { re: '^message_size_limit =', l: 'message_size_limit = 10485760' }
+    - { re: '^smtpd_recipient_limit =', l: 'smtpd_recipient_limit = 10' }
+## avoid email harvesting
+    - { re: '^disable_vrfy_command =', l: 'disable_vrfy_command = yes' }
+## others
+    - { re: '^smtpd_delay_reject = ', l: 'smtpd_delay_reject = yes' }
+    - { re: '^smtpd_helo_required = ', l: 'smtpd_helo_required = yes' }
+  notify:
+    - restart postfix
+
+- name: hardening of postfix - SPF 1
+  lineinfile: dest=/etc/postfix/main.cf regexp="{{ item.re }}" line="{{ item.l }}" backup=yes
+  with_items:
+    - { re: '^policy-spf_time_limit =', l: 'policy-spf_time_limit = 3600s' }
+  notify:
+    - restart postfix
+  when: hardenmail_postfix_spf is defined and hardenmail_postfix_spf
+
+## + reject_invalid_hostname?
+- name: hardening of postfix - SPF 2
+  replace: dest=/etc/postfix/main.cf regexp="{{ item.re }}" replace="{{ item.r }}" backup=yes
+  with_items:
+    - { re: '^smtpd_recipient_restrictions = (.*)', r: 'smtpd_recipient_restrictions = \1,permit_mynetworks, permit_sasl_authenticated, check_recipient_access mysql:/etc/postfix/mysql-virtual_recipient.cf, reject_unauth_destination, reject_unknown_recipient_domain, check_policy_service unix:private/policy-spf' }
+  notify:
+    - restart postfix
+  when: hardenmail_postfix_spf is defined and hardenmail_postfix_spf
+
+- name: hardening of postfix - SPF 3
+  lineinfile: dest=/etc/postfix/master.cf regexp="{{ item.re }}" line="{{ item.l }}" backup=yes
+  with_items:
+    - { re: '^policy-spf', l: 'policy-spf  unix  -       n       n       -       -       spawn' }
+    - { re: '^     user=nobody argv=/usr/bin/policyd-spf', l: '     user=nobody argv=/usr/bin/policyd-spf' }
+  notify:
+    - restart postfix
+  when: hardenmail_postfix_spf is defined and hardenmail_postfix_spf
+
+- name: install greylist package for Postfix
+  apt: name=postgrey state=present
+  when: hardenmail_postfix_greylist is defined and hardenmail_postfix_greylist
+
+- name: hardening of postfix - Greylist
+  replace: dest=/etc/postfix/main.cf regexp="{{ item.re }}" replace="{{ item.r }}" backup=yes
+  with_items:
+    - { re: '^smtpd_recipient_restrictions = (.*)', r: 'smtpd_recipient_restrictions = \1,check_policy_service inet:127.0.0.1:10023' }
+  notify:
+    - restart postfix
+  when: hardenmail_postfix_spf is defined and hardenmail_postfix_spf
+
