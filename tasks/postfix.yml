@@ -3,6 +3,14 @@
 ## More
 ## https://www.howtoforge.com/hardening-postfix-for-ispconfig-3
 
+- name: apt | Install Postfix
+  apt: name=postfix state=present
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: yum | Install Postfix
+  yum: name=postfix state=present
+  when: ansible_os_family == "RedHat" or ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
 - name: hardening of postfix - DNSBL
   replace: dest=/etc/postfix/main.cf regexp="{{ item.re }}" replace="{{ item.l }}" backup=yes
   with_items:
