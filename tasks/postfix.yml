@@ -3,12 +3,27 @@
 ## More
 ## https://www.howtoforge.com/hardening-postfix-for-ispconfig-3
 
-- name: apt | Install Postfix
-  apt: name=postfix state=present
+- block:
+    - name: apt | Install Postfix
+      apt: name=postfix state=present
+    - name: apt | install SPF package for Postfix
+      apt: name=postfix-policyd-spf-python state=present
+#     apt: name=postfix-policyd-spf-perl state=present
+      when: hardenmail_postfix_spf is defined and hardenmail_postfix_spf
+    - name: apt | install greylist package for Postfix
+      apt: name=postgrey state=present
+      when: hardenmail_postfix_greylist is defined and hardenmail_postfix_greylist
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
-- name: yum | Install Postfix
-  yum: name=postfix state=present
+- block:
+    - name: yum | Install Postfix
+      yum: name=postfix state=present
+    - name: yum | install SPF package for Postfix
+      yum: name=pypolicyd-spf state=present
+      when: hardenmail_postfix_spf is defined and hardenmail_postfix_spf
+    - name: yum | install greylist package for Postfix
+      yum: name=postgrey state=present
+      when: hardenmail_postfix_greylist is defined and hardenmail_postfix_greylist
   when: ansible_os_family == "RedHat" or ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
 
 - name: hardening of postfix - DNSBL
@@ -19,40 +34,68 @@
     - restart postfix
   when: hardenmail_postfix_dnsbl is defined and hardenmail_postfix_dnsbl
 
-- name: install SPF package for Postfix
-  apt: name=postfix-policyd-spf-python state=present
-#  apt: name=postfix-policyd-spf-perl state=present
-  when: hardenmail_postfix_spf is defined and hardenmail_postfix_spf
-
 - name: restrict listen to loopback only
   lineinfile: dest=/etc/postfix/main.cf regexp="^inet_interfaces =" line="inet_interfaces = {{ hardenmail_postfix_listenif }}" backup=yes
   when: hardenmail_postfix_restrictlisten is defined and hardenmail_postfix_restrictlisten
   notify:
     - restart postfix
 
-- name: hardening of postfix configuration
-  lineinfile: dest=/etc/postfix/main.cf regexp="{{ item.re }}" line="{{ item.l }}" backup=yes
-  with_items:
-## https://marc.info/?l=postfix-users&m=140058464921413&w=2
-## https://marc.info/?l=postfix-users&m=140059435225323&w=2
-#if it is *not* a public MX
-#smtpd_tls_exclude_ciphers = aNULL, eNULL, EXP, MD5, IDEA, KRB5, RC2, SEED, SRP
-    - { re: '^smtp_tls_exclude_ciphers =', l: 'smtp_tls_exclude_ciphers = EXPORT, LOW' }
-    - { re: '^smtpd_tls_exclude_ciphers =', l: 'smtpd_tls_exclude_ciphers = EXPORT, LOW' }
-    - { re: '^smtpd_banner =', l: 'smtpd_banner = $myhostname ESMTP Sorry, No banner' }
-## limit resource exhaustion
-    - { re: '^default_process_limit =', l: 'default_process_limit = 100' }
-    - { re: '^smtpd_client_connection_count_limit =', l: 'smtpd_client_connection_count_limit = 10' }
-    - { re: '^smtpd_client_connection_rate_limit =', l: 'smtpd_client_connection_rate_limit = 10' }
-    - { re: '^queue_minfree =', l: 'queue_minfree = 20971520' }
-    - { re: '^header_size_limit =', l: 'header_size_limit = 51200' }
-    - { re: '^message_size_limit =', l: 'message_size_limit = 10485760' }
-    - { re: '^smtpd_recipient_limit =', l: 'smtpd_recipient_limit = 10' }
-## avoid email harvesting
-    - { re: '^disable_vrfy_command =', l: 'disable_vrfy_command = yes' }
-## others
-    - { re: '^smtpd_delay_reject = ', l: 'smtpd_delay_reject = yes' }
-    - { re: '^smtpd_helo_required = ', l: 'smtpd_helo_required = yes' }
+- name: Postfix | basic settings review
+  blockinfile:
+    dest: /etc/postfix/main.cf
+    marker: "# {mark} ANSIBLE MANAGED BLOCK: basic settings"
+    content: |
+      smtpd_banner = $myhostname ESMTP Sorry, No banner
+      biff = no
+
+      # appending .domain is the MUA's job.
+      append_dot_mydomain = no
+
+      # Uncomment the next line to generate "delayed mail" warnings
+      #delay_warning_time = 4h
+
+      readme_directory = no
+
+      ## limit resource exhaustion
+      default_process_limit = 100
+      smtpd_client_connection_count_limit = 10
+      smtpd_client_connection_rate_limit = 10
+      queue_minfree = 20971520
+      header_size_limit = 51200
+      message_size_limit = 10485760
+      smtpd_recipient_limit = 10
+      ## avoid email harvesting
+      disable_vrfy_command = yes
+      ## others
+      smtpd_delay_reject = yes
+      smtpd_helo_required = yes
+  notify:
+    - restart postfix
+
+- name: Postfix | TLS hardening
+  blockinfile:
+    dest: /etc/postfix/main.cf
+    marker: "# {mark} ANSIBLE MANAGED BLOCK: TLS hardening"
+    content: |
+      ## https://cipherli.st/
+      smtpd_use_tls=yes
+      smtpd_tls_security_level = may
+      smtpd_tls_auth_only = yes
+      smtpd_tls_cert_file={{ hardenmail_postfix_cert_file }}
+      smtpd_tls_key_file={{ hardenmail_postfix_key_file }}
+      smtpd_tls_session_cache_database = btree:${data_directory}/smtpd_scache
+      smtpd_tls_mandatory_protocols = !SSLv2,!SSLv3,!TLSv1,!TLSv1.1
+      smtpd_tls_protocols=!SSLv2,!SSLv3,!TLSv1,!TLSv1.1
+      smtpd_tls_mandatory_ciphers = medium
+      tls_medium_cipherlist = AES128+EECDH:AES128+EDH
+      ## https://marc.info/?l=postfix-users&m=140058464921413&w=2
+      ## https://marc.info/?l=postfix-users&m=140059435225323&w=2
+      #if it is *not* a public MX
+      #smtpd_tls_exclude_ciphers = aNULL, eNULL, EXP, MD5, IDEA, KRB5, RC2, SEED, SRP
+      smtp_tls_exclude_ciphers = EXPORT, LOW
+
+      ## http://askubuntu.com/questions/228938/how-can-i-configure-postfix-to-send-all-email-through-my-gmail-account
+      #smtp_tls_policy_maps = hash:/etc/postfix/tls_policy
   notify:
     - restart postfix
 
@@ -81,10 +124,6 @@
   notify:
     - restart postfix
   when: hardenmail_postfix_spf is defined and hardenmail_postfix_spf
-
-- name: install greylist package for Postfix
-  apt: name=postgrey state=present
-  when: hardenmail_postfix_greylist is defined and hardenmail_postfix_greylist
 
 - name: hardening of postfix - Greylist
   replace: dest=/etc/postfix/main.cf regexp="{{ item.re }}" replace="{{ item.r }}" backup=yes
