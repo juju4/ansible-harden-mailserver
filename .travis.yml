@@ -66,9 +66,6 @@ script:
     && (echo 'Idempotence test: pass' && exit 0)
     || (echo 'Idempotence test: fail' && cat /tmp/idempotency.log && exit 1)
 
-  # serverspec tests
-  - 'sudo docker exec --tty "$(cat ${container_id})" /etc/ansible/roles/harden-mailserver/test/integration/default/serverspec/run-local-tests.sh'
-
   # Clean up
   - 'sudo docker stop "$(cat ${container_id})"'
 
