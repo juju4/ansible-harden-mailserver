@@ -1,0 +1,27 @@
+---
+galaxy_info:
+  author: juju4
+  description: Mailserver Hardening role
+  license: BSD
+  min_ansible_version: 2.0
+  platforms:
+  - name: EL
+    versions:
+    - 7
+    - 6
+  - name: Fedora
+    versions:
+    - all
+  - name: Ubuntu
+    versions:
+    - xenial
+    - trusty
+    - precise
+  - name: Debian
+    versions:
+    - all
+  galaxy_tags:
+    - system
+    - security
+dependencies: []
+
