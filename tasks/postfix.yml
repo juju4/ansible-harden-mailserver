@@ -43,7 +43,7 @@
 - name: Postfix | replace existing settings
   replace: "dest=/etc/postfix/main.cf regexp={{ item.re }} replace={{ item.rep }}"
   with_items:
-    - { re: '^smtpd_banner = ', rep: 'smtpd_banner = $myhostname ESMTP Sorry, No banner' }
+    - { re: '^smtpd_banner = .*', rep: 'smtpd_banner = $myhostname ESMTP Sorry, No banner' }
   notify:
     - restart postfix
 
