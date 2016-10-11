@@ -40,12 +40,18 @@
   notify:
     - restart postfix
 
+- name: Postfix | replace existing settings
+  replace: "dest=/etc/postfix/main.cf regexp={{ item.re }} replace={{ item.rep }}"
+  with_items:
+    - { re: '^smtpd_banner = ', rep: 'smtpd_banner = $myhostname ESMTP Sorry, No banner' }
+  notify:
+    - restart postfix
+
 - name: Postfix | basic settings review
   blockinfile:
     dest: /etc/postfix/main.cf
     marker: "# {mark} ANSIBLE MANAGED BLOCK: basic settings"
     content: |
-      smtpd_banner = $myhostname ESMTP Sorry, No banner
       biff = no
 
       # appending .domain is the MUA's job.
