@@ -40,8 +40,8 @@
   notify:
     - restart postfix
 
-- name: Postfix | replace existing settings
-  replace: "dest=/etc/postfix/main.cf regexp={{ item.re }} replace={{ item.rep }}"
+- name: Postfix | set banner settings
+  lineinfile: "dest=/etc/postfix/main.cf regexp={{ item.re }} line={{ item.rep }}"
   with_items:
     - { re: '^smtpd_banner = .*', rep: 'smtpd_banner = $myhostname ESMTP Sorry, No banner' }
   notify:

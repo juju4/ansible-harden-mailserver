@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.org/juju4/ansible-harden-mailserver.svg?branch=master)](https://travis-ci.org/juju4/ansible-harden-mailserver)
+[![Build Status - Master](https://travis-ci.org/juju4/ansible-harden-mailserver.svg?branch=master)](https://travis-ci.org/juju4/ansible-harden-mailserver)
+[![Build Status - Devel](https://travis-ci.org/juju4/ansible-harden-mailserver.svg?branch=devel)](https://travis-ci.org/juju4/ansible-harden-mailserver/branches)
 # Mailserver hardening ansible role
 
 Ansible role to harden mailserver system.

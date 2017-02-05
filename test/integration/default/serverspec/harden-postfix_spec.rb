@@ -29,3 +29,9 @@ describe file('/etc/postfix/main.cf') do
   its(:content) { should match /smtpd_use_tls=yes/ }
 end
 
+describe command('echo | openssl s_client -starttls smtp -connect localhost:25 -cipher "EDH" 2>/dev/null | grep -ie "Server Temp key"') do
+  its(:stdout) { should match /2048 bit/ }
+end
+describe command('echo | openssl s_client -starttls smtp -connect localhost:25 -cipher "EDH" 2>/dev/null | grep -ie "Server public key"') do
+  its(:stdout) { should match /2048 bit/ }
+end
