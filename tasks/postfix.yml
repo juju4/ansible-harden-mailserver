@@ -75,6 +75,8 @@
       ## others
       smtpd_delay_reject = yes
       smtpd_helo_required = yes
+      ## https://isc.sans.edu/forums/diary/Hardening+Postfix+Against+FTP+Relay+Attacks/22086/
+      smtpd_forbidden_commands = CONNECT,GET,POST,USER,PASS
   notify:
     - restart postfix
 
