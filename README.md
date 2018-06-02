@@ -11,10 +11,11 @@ Currently only Postfix.
 It was tested on the following versions:
  * 1.9
  * 2.0
+ * 2.5
 
 ### Operating systems
 
-Tested with vagrant on Ubuntu 14.04, Kitchen test with trusty and xenial
+Tested on Ubuntu 14.04, 16.04 and 18.04
 
 ## Example Playbook
 
@@ -24,7 +25,7 @@ For example
 ```
 - host: all
   roles:
-    - harden-mailserver
+    - juju4.harden-mailserver
 ```
 
 ## Variables
@@ -37,13 +38,13 @@ This role has a travis basic test (for github), more advanced with kitchen and a
 
 Once you ensured all necessary roles are present, You can test with:
 ```
-$ cd /path/to/roles/harden-mailserver
+$ cd /path/to/roles/juju4.harden-mailserver
 $ kitchen verify
 $ kitchen login
 ```
 or
 ```
-$ cd /path/to/roles/harden-mailserver/test/vagrant
+$ cd /path/to/roles/juju4.harden-mailserver/test/vagrant
 $ vagrant up
 $ vagrant ssh
 ```
