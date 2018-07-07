@@ -9,3 +9,12 @@ hardenmail_postfix_greylist: false
 
 hardenmail_postfix_cert_file: /etc/ssl/certs/ssl-cert-snakeoil.pem
 hardenmail_postfix_key_file: /etc/ssl/private/ssl-cert-snakeoil.key
+
+# suggested aliases mostly from RFC2142. advise to point to your company entry point
+hardenmail_aliases:
+  - { n: webmaster, v: 'root' }
+  - { n: support, v: 'root' }
+  - { n: noc, v: 'root' }
+  - { n: abuse, v: 'root' }
+  - { n: security, v: 'root' }
+  - { n: soc, v: 'root' }

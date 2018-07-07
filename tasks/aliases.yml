@@ -1,0 +1,12 @@
+---
+
+- name: Ensure /etc/aliases redirects are configured
+  lineinfile:
+    dest: /etc/aliases
+    regexp: "^{{ item.n }}: .*"
+    line: "{{ item.n }}: {{ item.v }}"
+    backup: yes
+  with_items: "{{ hardenmail_aliases }}"
+  become: yes
+  notify:
+    - rebuild aliases

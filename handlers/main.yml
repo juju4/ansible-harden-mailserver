@@ -2,4 +2,8 @@
 
 - name: restart postfix
   service: name=postfix state=restarted
+  become: yes
 
+- name: rebuild aliases
+  command: newaliases
+  become: yes
