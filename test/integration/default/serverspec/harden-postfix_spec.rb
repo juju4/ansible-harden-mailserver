@@ -29,9 +29,23 @@ describe file('/etc/postfix/main.cf') do
   its(:content) { should match /smtpd_use_tls=yes/ }
 end
 
-describe command('echo | openssl s_client -starttls smtp -connect localhost:25 -cipher "EDH" 2>/dev/null | grep -ie "Server Temp key"') do
-  its(:stdout) { should match /2048 bit/ }
+describe command('postconf') do
+  its(:stdout) { should match /smtpd_use_tls = yes/ }
+  its(:stdout) { should match /disable_vrfy_command = yes/ }
+  its(:stderr) { should_not match /warning/ }
+  its(:stderr) { should_not match /fatal/ }
+  its(:exit_status) { should eq 0 }
 end
-describe command('echo | openssl s_client -starttls smtp -connect localhost:25 -cipher "EDH" 2>/dev/null | grep -ie "Server public key"') do
-  its(:stdout) { should match /2048 bit/ }
+
+describe command('echo | openssl s_client -starttls smtp -connect localhost:25') do
+  its(:stdout) { should match /CONNECTED/ }
+  its(:stdout) { should match /SSL handshake has read/ }
+  its(:stdout) { should match /Protocol  : TLSv1.2/ }
+end
+
+# FIXME! on centos7, got 'CONNECTED' and hold...
+describe command('echo | timeout 15 openssl s_client -starttls smtp -connect localhost:25 -cipher "EDH"'), :if => os[:family] != 'redhat' do
+  its(:stdout) { should match /CONNECTED/ }
+  its(:stdout) { should match /Server Temp key.*2048 bit/ }
+  its(:stdout) { should match /Server public key.*2048 bit/ }
 end
