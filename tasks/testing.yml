@@ -1,0 +1,7 @@
+---
+
+- name: Ensure serverspec dependencies are present
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ serverspec_pkgs }}"

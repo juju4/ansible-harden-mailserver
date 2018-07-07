@@ -18,3 +18,5 @@ hardenmail_aliases:
   - { n: abuse, v: 'root' }
   - { n: security, v: 'root' }
   - { n: soc, v: 'root' }
+
+hardenmail_testing: false

@@ -2,8 +2,8 @@
 
 - hosts: all
 #- hosts: test-kitchen
-#  vars:
-#    - a:
+  vars:
+    - hardenmail_testing: true
   roles:
     - juju4.harden-mailserver
 

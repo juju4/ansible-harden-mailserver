@@ -1,5 +1,20 @@
 ---
 
+- name: Include for Debian.
+  include_vars: "Debian.yml"
+  when: ansible_os_family == 'Debian'
+
+- name: Include variables for RedHat
+  include_vars: "RedHat.yml"
+  when: ansible_os_family == "RedHat"
+
+- name: Include version-specific variables for Alpine
+  include_vars: "Alpine.yml"
+  when: ansible_os_family == "Alpine"
+
 - include: postfix.yml
 
 - include: aliases.yml
+
+- include: testing.yml
+  when: hardenmail_testing
