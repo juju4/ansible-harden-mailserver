@@ -46,6 +46,6 @@ end
 # FIXME! on centos7, got 'CONNECTED' and hold...
 describe command('echo | timeout 15 openssl s_client -starttls smtp -connect localhost:25 -cipher "EDH"'), :if => os[:family] != 'redhat' do
   its(:stdout) { should match /CONNECTED/ }
-  its(:stdout) { should match /Server Temp key: DH, 2048 bits/ }
-  its(:stdout) { should match /Server public key.*2048 bit/ }
+  its(:stdout) { should match /Server Temp key: DH, 2048 bits/i }
+  its(:stdout) { should match /Server public key.*2048 bit/i }
 end
