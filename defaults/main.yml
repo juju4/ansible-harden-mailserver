@@ -1,7 +1,7 @@
 ---
 
 hardenmail_postfix_restrictlisten: true
-hardenmail_postfix_listenif: 127.0.0.1
+hardenmail_postfix_listenif: loopback-only
 
 hardenmail_postfix_dnsbl: true
 hardenmail_postfix_spf: true
