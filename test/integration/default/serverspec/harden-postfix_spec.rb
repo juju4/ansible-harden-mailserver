@@ -26,7 +26,7 @@ end
 describe file('/etc/postfix/main.cf') do
   it { should be_file }
   its(:content) { should match /smtpd_banner = \$myhostname ESMTP Sorry, No banner/ }
-  its(:content) { should match /smtpd_use_tls=yes/ }
+  its(:content) { should match /smtpd_use_tls = yes/ }
 end
 
 describe command('postconf') do
