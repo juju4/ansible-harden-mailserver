@@ -93,15 +93,11 @@
       smtpd_tls_cert_file = {{ hardenmail_postfix_cert_file }}
       smtpd_tls_key_file = {{ hardenmail_postfix_key_file }}
       smtpd_tls_session_cache_database = btree:${data_directory}/smtpd_scache
-      smtpd_tls_mandatory_protocols = !SSLv2,!SSLv3,!TLSv1,!TLSv1.1
-      smtpd_tls_protocols = !SSLv2,!SSLv3,!TLSv1,!TLSv1.1
+      smtpd_tls_mandatory_protocols = {{ hardenmail_postfix_smtpd_tls_mandatory_protocols }}
+      smtpd_tls_protocols = {{ hardenmail_postfix_smtpd_tls_mandatory_protocols }}
       smtpd_tls_mandatory_ciphers = medium
-      tls_medium_cipherlist = AES128+EECDH:AES128+EDH
-      ## https://marc.info/?l=postfix-users&m=140058464921413&w=2
-      ## https://marc.info/?l=postfix-users&m=140059435225323&w=2
-      #if it is *not* a public MX
-      #smtpd_tls_exclude_ciphers = aNULL,eNULL,EXP,MD5,IDEA,KRB5,RC2,SEED,SRP
-      smtp_tls_exclude_ciphers = EXPORT,LOW
+      tls_medium_cipherlist = {{ hardenmail_postfix_tls_medium_cipherlist }}
+      smtp_tls_exclude_ciphers = {{ hardenmail_postfix_smtp_tls_exclude_ciphers }}
 
       ## http://askubuntu.com/questions/228938/how-can-i-configure-postfix-to-send-all-email-through-my-gmail-account
       #smtp_tls_policy_maps = hash:/etc/postfix/tls_policy

@@ -10,6 +10,15 @@ hardenmail_postfix_greylist: false
 hardenmail_postfix_cert_file: /etc/ssl/certs/ssl-cert-snakeoil.pem
 hardenmail_postfix_key_file: /etc/ssl/private/ssl-cert-snakeoil.key
 
+hardenmail_postfix_smtpd_tls_mandatory_protocols: '!SSLv2,!SSLv3,!TLSv1,!TLSv1.1'
+# https://marc.info/?l=postfix-users&m=140058464921413&w=2
+# https://marc.info/?l=postfix-users&m=140059435225323&w=2
+# if it is *not* a public MX
+hardenmail_postfix_smtp_tls_exclude_ciphers: 'aNULL,eNULL,EXP,MD5,IDEA,KRB5,RC2,SEED,SRP'
+# else
+#hardenmail_postfix_smtp_tls_exclude_ciphers: 'EXPORT,LOW'
+hardenmail_postfix_tls_medium_cipherlist: 'AES128+EECDH:AES128+EDH'
+
 # suggested aliases mostly from RFC2142. advise to point to your company entry point
 hardenmail_aliases:
   - { n: webmaster, v: 'root' }
