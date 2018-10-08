@@ -86,28 +86,28 @@
     marker: "# {mark} ANSIBLE MANAGED BLOCK: TLS hardening"
     content: |
       ## https://cipherli.st/
-      smtp_use_tls=yes
-      smtpd_use_tls=yes
+      smtp_use_tls = yes
+      smtpd_use_tls = yes
       smtpd_tls_security_level = may
       smtpd_tls_auth_only = yes
-      smtpd_tls_cert_file={{ hardenmail_postfix_cert_file }}
-      smtpd_tls_key_file={{ hardenmail_postfix_key_file }}
+      smtpd_tls_cert_file = {{ hardenmail_postfix_cert_file }}
+      smtpd_tls_key_file = {{ hardenmail_postfix_key_file }}
       smtpd_tls_session_cache_database = btree:${data_directory}/smtpd_scache
       smtpd_tls_mandatory_protocols = !SSLv2,!SSLv3,!TLSv1,!TLSv1.1
-      smtpd_tls_protocols=!SSLv2,!SSLv3,!TLSv1,!TLSv1.1
+      smtpd_tls_protocols = !SSLv2,!SSLv3,!TLSv1,!TLSv1.1
       smtpd_tls_mandatory_ciphers = medium
       tls_medium_cipherlist = AES128+EECDH:AES128+EDH
       ## https://marc.info/?l=postfix-users&m=140058464921413&w=2
       ## https://marc.info/?l=postfix-users&m=140059435225323&w=2
       #if it is *not* a public MX
-      #smtpd_tls_exclude_ciphers = aNULL, eNULL, EXP, MD5, IDEA, KRB5, RC2, SEED, SRP
-      smtp_tls_exclude_ciphers = EXPORT, LOW
+      #smtpd_tls_exclude_ciphers = aNULL,eNULL,EXP,MD5,IDEA,KRB5,RC2,SEED,SRP
+      smtp_tls_exclude_ciphers = EXPORT,LOW
 
       ## http://askubuntu.com/questions/228938/how-can-i-configure-postfix-to-send-all-email-through-my-gmail-account
       #smtp_tls_policy_maps = hash:/etc/postfix/tls_policy
 
       smtp_sasl_auth_enable = yes
-      smtp_sasl_security_options = noanonymous
+      smtp_sasl_security_options = noplaintext,noanonymous
   notify:
     - restart postfix
 
