@@ -24,24 +24,33 @@
     - name: yum | install greylist package for Postfix
       yum: name=postgrey state=present
       when: hardenmail_postfix_greylist is defined and hardenmail_postfix_greylist
-  when: ansible_os_family == "RedHat" or ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+  when: ansible_os_family == "RedHat"
 
 - name: hardening of postfix - DNSBL
   replace: dest=/etc/postfix/main.cf regexp="{{ item.re }}" replace="{{ item.l }}" backup=yes
   with_items:
-    - { re: '^smtpd_recipient_restrictions = (.*)', l: 'smtpd_recipient_restrictions = \1,reject_rbl_client cbl.abuseat.org, reject_rbl_client b.barracudacentral.org' }
+    - { re: '^smtpd_recipient_restrictions = (.*)',
+        l: 'smtpd_recipient_restrictions = \1,reject_rbl_client cbl.abuseat.org, reject_rbl_client b.barracudacentral.org'
+      }
   notify:
     - restart postfix
   when: hardenmail_postfix_dnsbl is defined and hardenmail_postfix_dnsbl
 
 - name: restrict listen to loopback only
-  lineinfile: dest=/etc/postfix/main.cf regexp="^inet_interfaces =" line="inet_interfaces = {{ hardenmail_postfix_listenif }}" backup=yes
+  lineinfile:
+    dest: /etc/postfix/main.cf
+    regexp: "^inet_interfaces ="
+    line: "inet_interfaces = {{ hardenmail_postfix_listenif }}"
+    backup: yes
   when: hardenmail_postfix_restrictlisten is defined and hardenmail_postfix_restrictlisten
   notify:
     - restart postfix
 
 - name: Postfix | set banner settings
-  lineinfile: "dest=/etc/postfix/main.cf regexp={{ item.re }} line={{ item.rep }}"
+  lineinfile:
+    dest: /etc/postfix/main.cf
+    regexp: "{{ item.re }}"
+    line: "{{ item.rep }}"
   with_items:
     - { re: '^smtpd_banner = .*', rep: 'smtpd_banner = $myhostname ESMTP Sorry, No banner' }
   notify:
@@ -119,13 +128,19 @@
 - name: hardening of postfix - SPF 2
   replace: dest=/etc/postfix/main.cf regexp="{{ item.re }}" replace="{{ item.r }}" backup=yes
   with_items:
-    - { re: '^smtpd_recipient_restrictions = (.*)', r: 'smtpd_recipient_restrictions = \1,permit_mynetworks, permit_sasl_authenticated, check_recipient_access mysql:/etc/postfix/mysql-virtual_recipient.cf, reject_unauth_destination, reject_unknown_recipient_domain, check_policy_service unix:private/policy-spf' }
+    - { re: '^smtpd_recipient_restrictions = (.*)',
+        r: 'smtpd_recipient_restrictions = \1,permit_mynetworks, permit_sasl_authenticated, check_recipient_access mysql:/etc/postfix/mysql-virtual_recipient.cf, reject_unauth_destination, reject_unknown_recipient_domain, check_policy_service unix:private/policy-spf'
+      }
   notify:
     - restart postfix
   when: hardenmail_postfix_spf is defined and hardenmail_postfix_spf
 
 - name: hardening of postfix - SPF 3
-  lineinfile: dest=/etc/postfix/master.cf regexp="{{ item.re }}" line="{{ item.l }}" backup=yes
+  lineinfile:
+    dest: /etc/postfix/master.cf
+    regexp: "{{ item.re }}"
+    line: "{{ item.l }}"
+    backup: yes
   with_items:
     - { re: '^policy-spf', l: 'policy-spf  unix  -       n       n       -       -       spawn' }
     - { re: '^     user=nobody argv=/usr/bin/policyd-spf', l: '     user=nobody argv=/usr/bin/policyd-spf' }
@@ -134,10 +149,15 @@
   when: hardenmail_postfix_spf is defined and hardenmail_postfix_spf
 
 - name: hardening of postfix - Greylist
-  replace: dest=/etc/postfix/main.cf regexp="{{ item.re }}" replace="{{ item.r }}" backup=yes
+  replace:
+    dest: /etc/postfix/main.cf
+    regexp: "{{ item.re }}"
+    replace: "{{ item.r }}"
+    backup: yes
   with_items:
-    - { re: '^smtpd_recipient_restrictions = (.*)', r: 'smtpd_recipient_restrictions = \1,check_policy_service inet:127.0.0.1:10023' }
+    - { re: '^smtpd_recipient_restrictions = (.*)',
+        r: 'smtpd_recipient_restrictions = \1,check_policy_service inet:127.0.0.1:10023'
+      }
   notify:
     - restart postfix
   when: hardenmail_postfix_spf is defined and hardenmail_postfix_spf
-

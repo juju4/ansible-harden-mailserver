@@ -2,5 +2,4 @@
 
 - hosts: all
   roles:
-    - juju4.harden-mailserver
-
+    - juju4.harden_mailserver

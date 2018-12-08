@@ -1,5 +1,6 @@
 ---
 galaxy_info:
+  role_name: harden_mailserver
   author: juju4
   description: Mailserver Hardening role
   license: BSD
@@ -25,4 +26,3 @@ galaxy_info:
     - system
     - security
 dependencies: []
-
