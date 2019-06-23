@@ -37,15 +37,28 @@ describe command('postconf') do
   its(:exit_status) { should eq 0 }
 end
 
-describe command('echo | openssl s_client -starttls smtp -connect localhost:25') do
+describe command('echo | openssl s_client -starttls smtp -connect localhost:25'), :if => os[:family] != 'ubuntu' || os[:release] != '18.04' do
   its(:stdout) { should match /CONNECTED/ }
   its(:stdout) { should match /SSL handshake has read/ }
   its(:stdout) { should match /Protocol  : TLSv1.2/ }
 end
 
+describe command('echo | openssl s_client -starttls smtp -connect localhost:25'), :if => os[:family] == 'ubuntu' && os[:release] == '18.04' do
+  its(:stdout) { should match /CONNECTED/ }
+  its(:stdout) { should match /SSL handshake has read/ }
+  its(:stdout) { should match /Protocol  : TLSv1.3/ }
+end
+
 # FIXME! on centos7, got 'CONNECTED' and hold...
-describe command('echo | timeout 15 openssl s_client -starttls smtp -connect localhost:25 -cipher "EDH"'), :if => os[:family] != 'redhat' do
+describe command('echo | timeout 15 openssl s_client -starttls smtp -connect localhost:25 -cipher "EDH"'), :if => os[:family] != 'redhat' && os[:release] != '18.04' do
   its(:stdout) { should match /CONNECTED/ }
   its(:stdout) { should match /Server Temp key: DH, 2048 bits/i }
   its(:stdout) { should match /Server public key.*2048 bit/i }
 end
+
+describe command('echo | timeout 15 openssl s_client -starttls smtp -connect localhost:25 -cipher "EDH"'), :if => os[:family] == 'ubuntu' && os[:release] == '18.04' do
+  its(:stdout) { should match /CONNECTED/ }
+  its(:stdout) { should match /Server Temp Key: X25519, 253 bits/i }
+  its(:stdout) { should match /Server public key.*2048 bit/i }
+end
+
