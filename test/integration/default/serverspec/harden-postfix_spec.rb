@@ -46,7 +46,7 @@ end
 describe command('echo | openssl s_client -starttls smtp -connect localhost:25'), :if => os[:family] == 'ubuntu' && os[:release] == '18.04' do
   its(:stdout) { should match /CONNECTED/ }
   its(:stdout) { should match /SSL handshake has read/ }
-  its(:stdout) { should match /Protocol  : TLSv1.3/ }
+  its(:stdout) { should match /New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384/ }
 end
 
 # FIXME! on centos7, got 'CONNECTED' and hold...
