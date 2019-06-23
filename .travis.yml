@@ -87,5 +87,8 @@ script:
 #  - "systemctl -l status"
 #  - "journalctl -xe --no-pager"
 
+after_script:
+  - openssl version
+
 notifications:
   webhooks: https://galaxy.ansible.com/api/v1/notifications/
