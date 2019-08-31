@@ -83,9 +83,10 @@ script:
 #  - KITCHEN_LOCAL_YAML=.kitchen.local.yml bundle exec kitchen verify ${INSTANCE}
   - sudo -E su $USER -c "env PATH=$PATH kitchen verify default-${distribution}-${version//./} -l debug || (cat $HOME/.kitchen/logs/default-${distribution}-${version//./}.log; find /tmp/kitchen)"
 
-#after_failure:
-#  - "systemctl -l status"
-#  - "journalctl -xe --no-pager"
+after_failure:
+  - sudo -E su $USER -c "env PATH=$PATH kitchen exec ${suite}-${distribution}-${version//./} -c 'systemctl -l --no-pager status postfix'"
+  - sudo -E su $USER -c "env PATH=$PATH kitchen exec ${suite}-${distribution}-${version//./} -c 'systemctl -l --no-pager status'"
+  - sudo -E su $USER -c "env PATH=$PATH kitchen exec ${suite}-${distribution}-${version//./} -c 'journalctl -xe --no-pager'"
 
 after_script:
   - openssl version
