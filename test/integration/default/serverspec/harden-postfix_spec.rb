@@ -11,7 +11,7 @@ end
 describe package('postfix-policyd-spf-python'), :if => os[:family] == 'ubuntu' do
   it { should be_installed }
 end
-describe package('pypolicyd-spf'), :if => os[:family] == 'redhat' do
+describe package('pypolicyd-spf'), :if => os[:family] == 'redhat' && os[:release] != '8'do
   it { should be_installed }
 end
 ## not enabled by default

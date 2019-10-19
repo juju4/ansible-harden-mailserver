@@ -20,7 +20,9 @@
       yum: name=postfix state=present
     - name: yum | install SPF package for Postfix
       yum: name=pypolicyd-spf state=present
-      when: hardenmail_postfix_spf is defined and hardenmail_postfix_spf
+      when: >
+        hardenmail_postfix_spf is defined and hardenmail_postfix_spf and
+        ansible_distribution_major_version|int < 8
     - name: yum | install greylist package for Postfix
       yum: name=postgrey state=present
       when: hardenmail_postfix_greylist is defined and hardenmail_postfix_greylist
@@ -117,23 +119,35 @@
     - restart postfix
 
 - name: hardening of postfix - SPF 1
-  lineinfile: dest=/etc/postfix/main.cf regexp="{{ item.re }}" line="{{ item.l }}" backup=yes
+  lineinfile:
+    dest: /etc/postfix/main.cf
+    regexp: "{{ item.re }}"
+    line: "{{ item.l }}"
+    backup: yes
   with_items:
     - { re: '^policy-spf_time_limit =', l: 'policy-spf_time_limit = 3600s' }
   notify:
     - restart postfix
-  when: hardenmail_postfix_spf is defined and hardenmail_postfix_spf
+  when: >
+    hardenmail_postfix_spf is defined and hardenmail_postfix_spf
+    ansible_distribution_major_version|int < 8
 
 ## + reject_invalid_hostname?
 - name: hardening of postfix - SPF 2
-  replace: dest=/etc/postfix/main.cf regexp="{{ item.re }}" replace="{{ item.r }}" backup=yes
+  replace:
+    dest: /etc/postfix/main.cf
+    regexp: "{{ item.re }}"
+    replace: "{{ item.r }}"
+    backup: yes
   with_items:
     - { re: '^smtpd_recipient_restrictions = (.*)',
         r: 'smtpd_recipient_restrictions = \1,permit_mynetworks, permit_sasl_authenticated, check_recipient_access mysql:/etc/postfix/mysql-virtual_recipient.cf, reject_unauth_destination, reject_unknown_recipient_domain, check_policy_service unix:private/policy-spf'
       }
   notify:
     - restart postfix
-  when: hardenmail_postfix_spf is defined and hardenmail_postfix_spf
+  when: >
+    hardenmail_postfix_spf is defined and hardenmail_postfix_spf
+    ansible_distribution_major_version|int < 8
 
 - name: hardening of postfix - SPF 3
   lineinfile:
@@ -146,7 +160,9 @@
     - { re: '^     user=nobody argv=/usr/bin/policyd-spf', l: '     user=nobody argv=/usr/bin/policyd-spf' }
   notify:
     - restart postfix
-  when: hardenmail_postfix_spf is defined and hardenmail_postfix_spf
+  when: >
+    hardenmail_postfix_spf is defined and hardenmail_postfix_spf
+    ansible_distribution_major_version|int < 8
 
 - name: hardening of postfix - Greylist
   replace:
@@ -160,4 +176,6 @@
       }
   notify:
     - restart postfix
-  when: hardenmail_postfix_spf is defined and hardenmail_postfix_spf
+  when: >
+    hardenmail_postfix_spf is defined and hardenmail_postfix_spf
+    ansible_distribution_major_version|int < 8
