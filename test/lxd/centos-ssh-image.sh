@@ -20,6 +20,7 @@ if [ "X$1" = "X8" ]; then
   lxc exec $guest -- dnf -y upgrade
   lxc exec $guest -- dnf install -y openssh-server sudo ruby yum-utils
   lxc exec $guest -- dnf install -y python3 python3-pip openssl-devel python36-devel libffi-devel "@Development tools"
+  lxc exec $guest -- pip3 install ansible
   lxc exec $guest -- ln -s /usr/bin/pip3 /usr/bin/pip
 else
   lxc exec $guest -- yum -y upgrade
