@@ -129,7 +129,7 @@
   notify:
     - restart postfix
   when: >
-    hardenmail_postfix_spf is defined and hardenmail_postfix_spf
+    hardenmail_postfix_spf is defined and hardenmail_postfix_spf and
     ansible_distribution_major_version|int < 8
 
 ## + reject_invalid_hostname?
@@ -146,7 +146,7 @@
   notify:
     - restart postfix
   when: >
-    hardenmail_postfix_spf is defined and hardenmail_postfix_spf
+    hardenmail_postfix_spf is defined and hardenmail_postfix_spf and
     ansible_distribution_major_version|int < 8
 
 - name: hardening of postfix - SPF 3
@@ -161,7 +161,7 @@
   notify:
     - restart postfix
   when: >
-    hardenmail_postfix_spf is defined and hardenmail_postfix_spf
+    hardenmail_postfix_spf is defined and hardenmail_postfix_spf and
     ansible_distribution_major_version|int < 8
 
 - name: hardening of postfix - Greylist
@@ -177,5 +177,5 @@
   notify:
     - restart postfix
   when: >
-    hardenmail_postfix_spf is defined and hardenmail_postfix_spf
+    hardenmail_postfix_spf is defined and hardenmail_postfix_spf and
     ansible_distribution_major_version|int < 8
