@@ -114,7 +114,9 @@
       #smtp_tls_policy_maps = hash:/etc/postfix/tls_policy
 
       smtp_sasl_auth_enable = yes
-      smtp_sasl_security_options = noplaintext,noanonymous
+      # https://www.reddit.com/r/linux/comments/1geezb/sasl_authentication_failure_when_attempting_to/
+      #smtp_sasl_security_options = noplaintext,noanonymous
+      smtp_sasl_security_options = {{ hardenmail_postfix_smtp_sasl_security_options | default('noanonymous') }}
   notify:
     - restart postfix
 
