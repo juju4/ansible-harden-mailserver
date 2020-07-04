@@ -5,7 +5,11 @@
 
 - block:
     - name: apt | Install Postfix
-      apt: name=postfix state=present
+      apt:
+        name: postfix
+        state: present
+        update_cache: yes
+        cache_valid_time: 3600
     - name: apt | install SPF package for Postfix
       apt: name=postfix-policyd-spf-python state=present
 #     apt: name=postfix-policyd-spf-perl state=present
