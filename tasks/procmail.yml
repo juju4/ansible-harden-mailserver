@@ -1,0 +1,6 @@
+---
+
+- name: Ensure procmail is present
+  package:
+    name: procmail
+    state: present
