@@ -3,6 +3,12 @@
 - name: restart postfix
   service: name=postfix state=restarted
   become: yes
+  when: >
+    not (
+      ansible_os_family == "RedHat" and ansible_virtualization_type is defined and (
+        ansible_virtualization_type == "docker" or ansible_virtualization_type == "VirtualPC"
+      )
+    )
 
 - name: rebuild aliases
   command: newaliases
