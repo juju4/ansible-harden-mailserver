@@ -121,6 +121,7 @@
           ansible_os_family == "RedHat" and ansible_virtualization_type is defined and (
             ansible_virtualization_type == "docker" or ansible_virtualization_type == "VirtualPC"
           )
+        )
     - block:
         - name: Focal | openssl s_client - EDH
           command: 'echo | timeout 15 openssl s_client -starttls smtp -connect localhost:25 -cipher "EDH"'
