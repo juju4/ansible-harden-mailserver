@@ -6,6 +6,8 @@ hardenmail_postfix_listenif: loopback-only
 hardenmail_postfix_dnsbl: true
 hardenmail_postfix_spf: true
 hardenmail_postfix_greylist: false
+hardenmail_postfix_procmail: true
+hardenmail_postfix_procmailrc_template: 'procmailrc'
 
 hardenmail_postfix_cert_file: /etc/ssl/certs/ssl-cert-snakeoil.pem
 hardenmail_postfix_key_file: /etc/ssl/private/ssl-cert-snakeoil.key

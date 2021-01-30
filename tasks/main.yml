@@ -16,5 +16,8 @@
 
 - include: aliases.yml
 
+- include: procmail.yml
+  when: hardenmail_postfix_procmail
+
 - include: testing.yml
   when: hardenmail_testing
