@@ -22,6 +22,15 @@
         that: ansible_facts.packages[item]
       with_items: "{{ verify_pkgs }}"
 
+    - name: Ensure process is running
+      command: pgrep -u root master
+      register: ps
+      changed_when: false
+      ignore_errors: true
+    - name: Validate ps output
+      assert:
+        that: ps.stdout
+
     - name: Ensure ports are listening
       wait_for:
         host: "{{ item.h }}"
