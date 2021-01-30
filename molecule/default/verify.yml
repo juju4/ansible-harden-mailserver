@@ -1,0 +1,104 @@
+---
+
+- name: Verify
+  hosts: mailserver
+  pre_tasks:
+    - name: RedHat | set packages to validate
+      verify_pkgs:
+        - pypolicyd-spf
+      when: ansible_os_family == "RedHat"
+    - name: Debian | set packages to validate
+      verify_pkgs:
+        - postfix-policyd-spf-python
+      when: ansible_os_family == 'Debian'
+  tasks:
+    - name: Gather package facts
+      package_facts:
+        manager: auto
+    - name: Validate that needed packages are present
+      assert:
+        that: ansible_facts.packages[item]
+      with_items: "{{ verify_pkgs }}"
+
+    - name: Ensure ports are listening
+      wait_for:
+        host: "{{ item.h }}"
+        port: "{{ item.p }}"
+        timeout: 10
+      with_items:
+        - { h: localhost, p: 25 }
+
+    - name: Fetch content of /etc/postfix/main.cf
+      slurp:
+        src: /etc/postfix/main.cf
+      register: cfg
+    - name: Validate main.cf
+      assert:
+        that: >
+          "'smtpd_banner = $myhostname ESMTP Sorry, No banner' in cfg['content'] | b64decode and
+           'smtpd_use_tls = yes' in cfg['content'] | b64decode"
+
+    - name: postconf
+      command: postconf
+      changed_when: false
+      register: postconf
+    - name: Validate postconf
+      asset:
+        that: >
+          "'smtpd_use_tls = yes' in postconf.stdout and
+           'disable_vrfy_command = yes' in postconf.stdout and
+           'warning' not in postconf.stderr and
+           'fatal' not in postconf.stderr and
+           postconf.rc == 0"
+
+    - block:
+        - name: openssl s_client
+          command: 'echo | openssl s_client -starttls smtp -connect localhost:25'
+          changed_when: false
+          register: s_client
+        - name: Validate openssl s_client
+          asset:
+            that: >
+              "'/CONNECTED/' in s_client.stdout and
+               'SSL handshake has read' in s_client.stdout and
+               'Protocol  : TLSv1.2' in s_client.stdout"
+      when: not (ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int == 18)
+    - block:
+        - name: Focal | openssl s_client
+          command: 'echo | openssl s_client -starttls smtp -connect localhost:25'
+          changed_when: false
+          register: s_client
+        - name: Focal | Validate openssl s_client
+          asset:
+            that: >
+              "'/CONNECTED/' in s_client.stdout and
+               'SSL handshake has read' in s_client.stdout and
+               'New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384' in s_client.stdout"
+      when: (ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int == 18)
+    - block:
+        - name: openssl s_client - EDH
+          command: 'echo | timeout 15 openssl s_client -starttls smtp -connect localhost:25 -cipher "EDH"'
+          changed_when: false
+          register: s_client2
+        - name: Validate openssl s_client - EDH
+          asset:
+            that: >
+              "'/CONNECTED/' in s_client2.stdout and
+               'Server Temp key: DH, 2048 bits' in s_client2.stdout and
+               'Server public key.*2048 bit' in s_client2.stdout"
+      when: not (ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int == 18)
+    - block:
+        - name: Focal | openssl s_client - EDH
+          command: 'echo | timeout 15 openssl s_client -starttls smtp -connect localhost:25 -cipher "EDH"'
+          changed_when: false
+          register: s_client2
+        - name: Focal | Validate openssl s_client - EDH
+          asset:
+            that: >
+              "'/CONNECTED/' in s_client2.stdout and
+               'Server Temp Key: X25519, 253 bits' in s_client2.stdout and
+               'Server public key.*2048 bit' in s_client2.stdout"
+      when: (ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int == 18)
+      when: (ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int == 18)
+
+
