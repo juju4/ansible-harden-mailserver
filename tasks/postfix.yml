@@ -25,8 +25,7 @@
     - name: yum | install SPF package for Postfix
       yum: name=pypolicyd-spf state=present
       when: >
-        hardenmail_postfix_spf is defined and hardenmail_postfix_spf and
-        ansible_distribution_major_version|int < 8
+        hardenmail_postfix_spf is defined and hardenmail_postfix_spf
     - name: yum | install greylist package for Postfix
       yum: name=postgrey state=present
       when: hardenmail_postfix_greylist is defined and hardenmail_postfix_greylist
