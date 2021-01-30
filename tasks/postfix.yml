@@ -12,7 +12,7 @@
         cache_valid_time: 3600
     - name: apt | install SPF package for Postfix
       apt: name=postfix-policyd-spf-python state=present
-#     apt: name=postfix-policyd-spf-perl state=present
+      # apt: name=postfix-policyd-spf-perl state=present
       when: hardenmail_postfix_spf is defined and hardenmail_postfix_spf
     - name: apt | install greylist package for Postfix
       apt: name=postgrey state=present
@@ -33,11 +33,16 @@
   when: ansible_os_family == "RedHat"
 
 - name: hardening of postfix - DNSBL
-  replace: dest=/etc/postfix/main.cf regexp="{{ item.re }}" replace="{{ item.l }}" backup=yes
+  replace:
+    dest: /etc/postfix/main.cf
+    regexp: "{{ item.re }}"
+    replace: "{{ item.l }}"
+    mode: '0644'
+    backup: yes
   with_items:
     - { re: '^smtpd_recipient_restrictions = (.*)',
         l: 'smtpd_recipient_restrictions = \1,reject_rbl_client cbl.abuseat.org, reject_rbl_client b.barracudacentral.org'
-      }
+    }
   notify:
     - restart postfix
   when: hardenmail_postfix_dnsbl is defined and hardenmail_postfix_dnsbl
@@ -47,6 +52,7 @@
     dest: /etc/postfix/main.cf
     regexp: "^inet_interfaces ="
     line: "inet_interfaces = {{ hardenmail_postfix_listenif }}"
+    mode: '0644'
     backup: yes
   when: hardenmail_postfix_restrictlisten is defined and hardenmail_postfix_restrictlisten
   notify:
@@ -57,6 +63,7 @@
     dest: /etc/postfix/main.cf
     regexp: "{{ item.re }}"
     line: "{{ item.rep }}"
+    mode: '0644'
   with_items:
     - { re: '^smtpd_banner = .*', rep: 'smtpd_banner = $myhostname ESMTP Sorry, No banner' }
   notify:
@@ -92,6 +99,7 @@
       smtpd_helo_required = yes
       ## https://isc.sans.edu/forums/diary/Hardening+Postfix+Against+FTP+Relay+Attacks/22086/
       smtpd_forbidden_commands = CONNECT,GET,POST,USER,PASS
+    mode: '0644'
   notify:
     - restart postfix
 
@@ -121,6 +129,7 @@
       # https://www.reddit.com/r/linux/comments/1geezb/sasl_authentication_failure_when_attempting_to/
       #smtp_sasl_security_options = noplaintext,noanonymous
       smtp_sasl_security_options = {{ hardenmail_postfix_smtp_sasl_security_options | default('noanonymous') }}
+    mode: '0644'
   notify:
     - restart postfix
 
@@ -129,6 +138,7 @@
     dest: /etc/postfix/main.cf
     regexp: "{{ item.re }}"
     line: "{{ item.l }}"
+    mode: '0644'
     backup: yes
   with_items:
     - { re: '^policy-spf_time_limit =', l: 'policy-spf_time_limit = 3600s' }
@@ -144,11 +154,12 @@
     dest: /etc/postfix/main.cf
     regexp: "{{ item.re }}"
     replace: "{{ item.r }}"
+    mode: '0644'
     backup: yes
   with_items:
     - { re: '^smtpd_recipient_restrictions = (.*)',
-        r: 'smtpd_recipient_restrictions = \1,permit_mynetworks, permit_sasl_authenticated, check_recipient_access mysql:/etc/postfix/mysql-virtual_recipient.cf, reject_unauth_destination, reject_unknown_recipient_domain, check_policy_service unix:private/policy-spf'
-      }
+        r: 'smtpd_recipient_restrictions = \1,permit_mynetworks, permit_sasl_authenticated, check_recipient_access mysql:/etc/postfix/mysql-virtual_recipient.cf, reject_unauth_destination, reject_unknown_recipient_domain, check_policy_service unix:private/policy-spf'  # noqa 204
+    }
   notify:
     - restart postfix
   when: >
@@ -160,6 +171,7 @@
     dest: /etc/postfix/master.cf
     regexp: "{{ item.re }}"
     line: "{{ item.l }}"
+    mode: '0644'
     backup: yes
   with_items:
     - { re: '^policy-spf', l: 'policy-spf  unix  -       n       n       -       -       spawn' }
@@ -175,11 +187,12 @@
     dest: /etc/postfix/main.cf
     regexp: "{{ item.re }}"
     replace: "{{ item.r }}"
+    mode: '0644'
     backup: yes
   with_items:
     - { re: '^smtpd_recipient_restrictions = (.*)',
         r: 'smtpd_recipient_restrictions = \1,check_policy_service inet:127.0.0.1:10023'
-      }
+    }
   notify:
     - restart postfix
   when: >

@@ -4,12 +4,14 @@
   hosts: mailserver
   pre_tasks:
     - name: RedHat | set packages to validate
-      verify_pkgs:
-        - pypolicyd-spf
+      set_fact:
+        verify_pkgs:
+          - pypolicyd-spf
       when: ansible_os_family == "RedHat"
     - name: Debian | set packages to validate
-      verify_pkgs:
-        - postfix-policyd-spf-python
+      set_fact:
+        verify_pkgs:
+          - postfix-policyd-spf-python
       when: ansible_os_family == 'Debian'
   tasks:
     - name: Gather package facts
@@ -43,7 +45,7 @@
       changed_when: false
       register: postconf
     - name: Validate postconf
-      asset:
+      assert:
         that: >
           "'smtpd_use_tls = yes' in postconf.stdout and
            'disable_vrfy_command = yes' in postconf.stdout and
@@ -57,7 +59,7 @@
           changed_when: false
           register: s_client
         - name: Validate openssl s_client
-          asset:
+          assert:
             that: >
               "'/CONNECTED/' in s_client.stdout and
                'SSL handshake has read' in s_client.stdout and
@@ -69,7 +71,7 @@
           changed_when: false
           register: s_client
         - name: Focal | Validate openssl s_client
-          asset:
+          assert:
             that: >
               "'/CONNECTED/' in s_client.stdout and
                'SSL handshake has read' in s_client.stdout and
@@ -81,7 +83,7 @@
           changed_when: false
           register: s_client2
         - name: Validate openssl s_client - EDH
-          asset:
+          assert:
             that: >
               "'/CONNECTED/' in s_client2.stdout and
                'Server Temp key: DH, 2048 bits' in s_client2.stdout and
@@ -93,12 +95,9 @@
           changed_when: false
           register: s_client2
         - name: Focal | Validate openssl s_client - EDH
-          asset:
+          assert:
             that: >
               "'/CONNECTED/' in s_client2.stdout and
                'Server Temp Key: X25519, 253 bits' in s_client2.stdout and
                'Server public key.*2048 bit' in s_client2.stdout"
       when: (ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int == 18)
-      when: (ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int == 18)
-
-

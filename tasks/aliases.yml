@@ -5,6 +5,7 @@
     dest: /etc/aliases
     regexp: "^{{ item.n }}: .*"
     line: "{{ item.n }}: {{ item.v }}"
+    mode: '0644'
     backup: yes
   with_items: "{{ hardenmail_aliases }}"
   become: yes
