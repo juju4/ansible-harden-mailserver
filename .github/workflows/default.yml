@@ -40,6 +40,8 @@ jobs:
           pip install molecule[docker] ansible-lint flake8 testinfra ansible
           ansible --version
           ansible-lint --version
+          mkdir -p $HOME/.ansible/roles && ln -s $GITHUB_WORKSPACE/juju4.harden_mailserver $HOME/.ansible/roles/
+          mkdir -p $HOME/.cache/molecule/juju4.harden_mailserver/default && ln -s $HOME/.ansible/roles $HOME/.cache/molecule/juju4.harden_mailserver/default/roles
       - name: Environment
         run: |
           pwd
