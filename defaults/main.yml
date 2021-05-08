@@ -21,6 +21,8 @@ hardenmail_postfix_smtp_tls_exclude_ciphers: 'aNULL,eNULL,EXP,MD5,IDEA,KRB5,RC2,
 # hardenmail_postfix_smtp_tls_exclude_ciphers: 'EXPORT,LOW'
 hardenmail_postfix_tls_medium_cipherlist: 'AES128+EECDH:AES128+EDH'
 
+hardenmail_postfix_securitylevel: 'encrypt'
+
 # suggested aliases mostly from RFC2142. advise to point to your company entry point
 hardenmail_aliases:
   - { n: webmaster, v: 'root' }
