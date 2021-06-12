@@ -61,4 +61,3 @@ describe command('echo | timeout 15 openssl s_client -starttls smtp -connect loc
   its(:stdout) { should match /Server Temp Key: X25519, 253 bits/i }
   its(:stdout) { should match /Server public key.*2048 bit/i }
 end
-

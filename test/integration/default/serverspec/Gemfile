@@ -4,4 +4,3 @@ gem 'serverspec'
 gem 'rake'
 ## for junit output and jenkins support
 #gem 'yarjuf'
-
