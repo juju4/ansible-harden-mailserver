@@ -12,12 +12,12 @@
   include_vars: "Alpine.yml"
   when: ansible_os_family == "Alpine"
 
-- include: postfix.yml
+- import_tasks: postfix.yml
 
-- include: aliases.yml
+- import_tasks: aliases.yml
 
-- include: procmail.yml
+- import_tasks: procmail.yml
   when: hardenmail_postfix_procmail
 
-- include: testing.yml
+- import_tasks: testing.yml
   when: hardenmail_testing
