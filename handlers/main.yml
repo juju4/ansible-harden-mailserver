@@ -1,7 +1,7 @@
 ---
 
 - name: restart postfix
-  service: name=postfix state=restarted
+  ansible.builtin.service: name=postfix state=restarted
   become: yes
   when: >
     not (
@@ -11,5 +11,5 @@
     )
 
 - name: rebuild aliases
-  command: newaliases
+  ansible.builtin.command: newaliases
   become: yes

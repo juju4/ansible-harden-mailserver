@@ -4,31 +4,31 @@
   hosts: mailserver
   pre_tasks:
     - name: RedHat | set packages to validate
-      set_fact:
+      ansible.builtin.set_fact:
         verify_pkgs:
           - pypolicyd-spf
       when: ansible_os_family == "RedHat"
     - name: Debian | set packages to validate
-      set_fact:
+      ansible.builtin.set_fact:
         verify_pkgs:
           - postfix-policyd-spf-python
       when: ansible_os_family == 'Debian'
   tasks:
     - name: Gather package facts
-      package_facts:
+      ansible.builtin.package_facts:
         manager: auto
     - name: Validate that needed packages are present
-      assert:
+      ansible.builtin.assert:
         that: ansible_facts.packages[item]
       with_items: "{{ verify_pkgs }}"
 
     - name: Ensure process is running
-      command: pgrep -u root master
+      ansible.builtin.command: pgrep -u root master
       register: ps
       changed_when: false
       ignore_errors: true
     - name: Validate ps output
-      assert:
+      ansible.builtin.assert:
         that: ps.stdout
       when: >
         not (
@@ -38,7 +38,7 @@
         )
 
     - name: Ensure ports are listening
-      wait_for:
+      ansible.builtin.wait_for:
         host: "{{ item.h }}"
         port: "{{ item.p }}"
         timeout: 10
@@ -52,21 +52,21 @@
         )
 
     - name: Fetch content of /etc/postfix/main.cf
-      slurp:
+      ansible.builtin.slurp:
         src: /etc/postfix/main.cf
       register: cfg
     - name: Validate main.cf
-      assert:
+      ansible.builtin.assert:
         that: >
           "'smtpd_banner = $myhostname ESMTP Sorry, No banner' in cfg['content'] | b64decode and
            'smtpd_use_tls = yes' in cfg['content'] | b64decode"
 
     - name: postconf
-      command: postconf
+      ansible.builtin.command: postconf
       changed_when: false
       register: postconf
     - name: Validate postconf
-      assert:
+      ansible.builtin.assert:
         that: >
           "'smtpd_use_tls = yes' in postconf.stdout and
            'disable_vrfy_command = yes' in postconf.stdout and
@@ -76,11 +76,11 @@
 
     - block:
         - name: openssl s_client
-          command: 'echo | openssl s_client -starttls smtp -connect localhost:25'
+          ansible.builtin.shell: 'echo | openssl s_client -starttls smtp -connect localhost:25'
           changed_when: false
           register: s_client
         - name: Validate openssl s_client
-          assert:
+          ansible.builtin.assert:
             that: >
               "'/CONNECTED/' in s_client.stdout and
                'SSL handshake has read' in s_client.stdout and
@@ -94,11 +94,11 @@
         )
     - block:
         - name: Focal | openssl s_client
-          command: 'echo | openssl s_client -starttls smtp -connect localhost:25'
+          ansible.builtin.shell: 'echo | openssl s_client -starttls smtp -connect localhost:25'
           changed_when: false
           register: s_client
         - name: Focal | Validate openssl s_client
-          assert:
+          ansible.builtin.assert:
             that: >
               "'/CONNECTED/' in s_client.stdout and
                'SSL handshake has read' in s_client.stdout and
@@ -106,11 +106,11 @@
       when: (ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int == 18)
     - block:
         - name: openssl s_client - EDH
-          command: 'echo | timeout 15 openssl s_client -starttls smtp -connect localhost:25 -cipher "EDH"'
+          ansible.builtin.shell: 'echo | timeout 15 openssl s_client -starttls smtp -connect localhost:25 -cipher "EDH"'
           changed_when: false
           register: s_client2
         - name: Validate openssl s_client - EDH
-          assert:
+          ansible.builtin.assert:
             that: >
               "'/CONNECTED/' in s_client2.stdout and
                'Server Temp key: DH, 2048 bits' in s_client2.stdout and
@@ -124,11 +124,11 @@
         )
     - block:
         - name: Focal | openssl s_client - EDH
-          command: 'echo | timeout 15 openssl s_client -starttls smtp -connect localhost:25 -cipher "EDH"'
+          ansible.builtin.shell: 'echo | timeout 15 openssl s_client -starttls smtp -connect localhost:25 -cipher "EDH"'
           changed_when: false
           register: s_client2
         - name: Focal | Validate openssl s_client - EDH
-          assert:
+          ansible.builtin.assert:
             that: >
               "'/CONNECTED/' in s_client2.stdout and
                'Server Temp Key: X25519, 253 bits' in s_client2.stdout and

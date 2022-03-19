@@ -5,34 +5,34 @@
 
 - block:
     - name: apt | Install Postfix
-      apt:
+      ansible.builtin.apt:
         name: postfix
         state: present
         update_cache: yes
         cache_valid_time: 3600
     - name: apt | install SPF package for Postfix
-      apt: name=postfix-policyd-spf-python state=present
+      ansible.builtin.apt: name=postfix-policyd-spf-python state=present
       # apt: name=postfix-policyd-spf-perl state=present
       when: hardenmail_postfix_spf is defined and hardenmail_postfix_spf
     - name: apt | install greylist package for Postfix
-      apt: name=postgrey state=present
+      ansible.builtin.apt: name=postgrey state=present
       when: hardenmail_postfix_greylist is defined and hardenmail_postfix_greylist
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
 - block:
     - name: yum | Install Postfix
-      yum: name=postfix state=present
+      ansible.builtin.yum: name=postfix state=present
     - name: yum | install SPF package for Postfix
-      yum: name=pypolicyd-spf state=present
+      ansible.builtin.yum: name=pypolicyd-spf state=present
       when: >
         hardenmail_postfix_spf is defined and hardenmail_postfix_spf
     - name: yum | install greylist package for Postfix
-      yum: name=postgrey state=present
+      ansible.builtin.yum: name=postgrey state=present
       when: hardenmail_postfix_greylist is defined and hardenmail_postfix_greylist
   when: ansible_os_family == "RedHat"
 
 - name: hardening of postfix - DNSBL
-  replace:
+  ansible.builtin.replace:
     dest: /etc/postfix/main.cf
     regexp: "{{ item.re }}"
     replace: "{{ item.l }}"
@@ -47,7 +47,7 @@
   when: hardenmail_postfix_dnsbl is defined and hardenmail_postfix_dnsbl
 
 - name: restrict listen to loopback only
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: /etc/postfix/main.cf
     regexp: "^inet_interfaces ="
     line: "inet_interfaces = {{ hardenmail_postfix_listenif }}"
@@ -58,7 +58,7 @@
     - restart postfix
 
 - name: Postfix | set banner settings
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: /etc/postfix/main.cf
     regexp: "{{ item.re }}"
     line: "{{ item.rep }}"
@@ -69,7 +69,7 @@
     - restart postfix
 
 - name: Postfix | basic settings review
-  blockinfile:
+  ansible.builtin.blockinfile:
     dest: /etc/postfix/main.cf
     marker: "# {mark} ANSIBLE MANAGED BLOCK: basic settings"
     content: |
@@ -103,7 +103,7 @@
     - restart postfix
 
 - name: Postfix | TLS hardening
-  blockinfile:
+  ansible.builtin.blockinfile:
     dest: /etc/postfix/main.cf
     marker: "# {mark} ANSIBLE MANAGED BLOCK: TLS hardening"
     content: |
@@ -133,7 +133,7 @@
     - restart postfix
 
 - name: hardening of postfix - SPF 1
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: /etc/postfix/main.cf
     regexp: "{{ item.re }}"
     line: "{{ item.l }}"
@@ -149,7 +149,7 @@
 
 ## + reject_invalid_hostname?
 - name: hardening of postfix - SPF 2
-  replace:
+  ansible.builtin.replace:
     dest: /etc/postfix/main.cf
     regexp: "{{ item.re }}"
     replace: "{{ item.r }}"
@@ -166,7 +166,7 @@
     ansible_distribution_major_version|int < 8
 
 - name: hardening of postfix - SPF 3
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: /etc/postfix/master.cf
     regexp: "{{ item.re }}"
     line: "{{ item.l }}"
@@ -182,7 +182,7 @@
     ansible_distribution_major_version|int < 8
 
 - name: hardening of postfix - Greylist
-  replace:
+  ansible.builtin.replace:
     dest: /etc/postfix/main.cf
     regexp: "{{ item.re }}"
     replace: "{{ item.r }}"

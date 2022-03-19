@@ -1,6 +1,6 @@
 ---
 
 - name: Ensure procmail is present
-  package:
+  ansible.builtin.package:
     name: procmail
     state: present
