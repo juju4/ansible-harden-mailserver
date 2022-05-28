@@ -74,7 +74,8 @@
            'fatal' not in postconf.stderr and
            postconf.rc == 0"
 
-    - block:
+    - name: Ubuntu 18.04 | Not container
+      block:
         - name: openssl s_client
           ansible.builtin.shell: 'echo | openssl s_client -starttls smtp -connect localhost:25'
           changed_when: false
@@ -92,7 +93,8 @@
             ansible_virtualization_type == "docker" or ansible_virtualization_type == "containerd"
           )
         )
-    - block:
+    - name: Ubuntu 18.04
+      block:
         - name: Focal | openssl s_client
           ansible.builtin.shell: 'echo | openssl s_client -starttls smtp -connect localhost:25'
           changed_when: false
@@ -104,7 +106,8 @@
                'SSL handshake has read' in s_client.stdout and
                'New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384' in s_client.stdout"
       when: (ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int == 18)
-    - block:
+    - name: Ubuntu 18.04+, Redhat not container
+      block:
         - name: openssl s_client - EDH
           ansible.builtin.shell: 'echo | timeout 15 openssl s_client -starttls smtp -connect localhost:25 -cipher "EDH"'
           changed_when: false
@@ -122,7 +125,8 @@
             ansible_virtualization_type == "docker" or ansible_virtualization_type == "containerd"
           )
         )
-    - block:
+    - name: Ubuntu 18.04
+      block:
         - name: Focal | openssl s_client - EDH
           ansible.builtin.shell: 'echo | timeout 15 openssl s_client -starttls smtp -connect localhost:25 -cipher "EDH"'
           changed_when: false

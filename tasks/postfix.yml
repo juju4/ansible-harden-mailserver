@@ -3,7 +3,8 @@
 ## More
 ## https://www.howtoforge.com/hardening-postfix-for-ispconfig-3
 
-- block:
+- name: Debian
+  block:
     - name: apt | Install Postfix
       ansible.builtin.apt:
         name: postfix
@@ -19,7 +20,8 @@
       when: hardenmail_postfix_greylist is defined and hardenmail_postfix_greylist
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
-- block:
+- name: RedHat
+  block:
     - name: yum | Install Postfix
       ansible.builtin.yum: name=postfix state=present
     - name: yum | install SPF package for Postfix
