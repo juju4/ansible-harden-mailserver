@@ -10,4 +10,4 @@
   with_items: "{{ hardenmail_aliases }}"
   become: yes
   notify:
-    - rebuild aliases
+    - Rebuild aliases

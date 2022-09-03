@@ -61,7 +61,7 @@
           "'smtpd_banner = $myhostname ESMTP Sorry, No banner' in cfg['content'] | b64decode and
            'smtpd_use_tls = yes' in cfg['content'] | b64decode"
 
-    - name: postconf
+    - name: Postconf
       ansible.builtin.command: postconf
       changed_when: false
       register: postconf
@@ -76,7 +76,7 @@
 
     - name: Ubuntu 18.04 | Not container
       block:
-        - name: openssl s_client
+        - name: Openssl s_client
           ansible.builtin.shell: 'echo | openssl s_client -starttls smtp -connect localhost:25'
           changed_when: false
           register: s_client
@@ -87,7 +87,7 @@
                'SSL handshake has read' in s_client.stdout and
                'Protocol  : TLSv1.2' in s_client.stdout"
       when: >
-        not (ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int == 18) and
+        not (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int == 18) and
         not (
           ansible_os_family == "RedHat" and ansible_virtualization_type is defined and (
             ansible_virtualization_type == "docker" or ansible_virtualization_type == "containerd"
@@ -105,10 +105,10 @@
               "'/CONNECTED/' in s_client.stdout and
                'SSL handshake has read' in s_client.stdout and
                'New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384' in s_client.stdout"
-      when: (ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int == 18)
+      when: (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int == 18)
     - name: Ubuntu 18.04+, Redhat not container
       block:
-        - name: openssl s_client - EDH
+        - name: Openssl s_client - EDH
           ansible.builtin.shell: 'echo | timeout 15 openssl s_client -starttls smtp -connect localhost:25 -cipher "EDH"'
           changed_when: false
           register: s_client2
@@ -119,7 +119,7 @@
                'Server Temp key: DH, 2048 bits' in s_client2.stdout and
                'Server public key.*2048 bit' in s_client2.stdout"
       when: >
-        not (ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int == 18) and
+        not (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int == 18) and
         not (
           ansible_os_family == "RedHat" and ansible_virtualization_type is defined and (
             ansible_virtualization_type == "docker" or ansible_virtualization_type == "containerd"
@@ -137,4 +137,4 @@
               "'/CONNECTED/' in s_client2.stdout and
                'Server Temp Key: X25519, 253 bits' in s_client2.stdout and
                'Server public key.*2048 bit' in s_client2.stdout"
-      when: (ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int == 18)
+      when: (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int == 18)

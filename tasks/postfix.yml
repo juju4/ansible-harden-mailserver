@@ -5,35 +5,35 @@
 
 - name: Debian
   block:
-    - name: apt | Install Postfix
+    - name: Debian | Install Postfix
       ansible.builtin.apt:
         name: postfix
         state: present
         update_cache: yes
         cache_valid_time: 3600
-    - name: apt | install SPF package for Postfix
+    - name: Debian | install SPF package for Postfix
       ansible.builtin.apt: name=postfix-policyd-spf-python state=present
       # apt: name=postfix-policyd-spf-perl state=present
       when: hardenmail_postfix_spf is defined and hardenmail_postfix_spf
-    - name: apt | install greylist package for Postfix
+    - name: Debian | install greylist package for Postfix
       ansible.builtin.apt: name=postgrey state=present
       when: hardenmail_postfix_greylist is defined and hardenmail_postfix_greylist
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
 - name: RedHat
   block:
-    - name: yum | Install Postfix
+    - name: Redhat | Install Postfix
       ansible.builtin.yum: name=postfix state=present
-    - name: yum | install SPF package for Postfix
+    - name: Redhat | install SPF package for Postfix
       ansible.builtin.yum: name=pypolicyd-spf state=present
       when: >
         hardenmail_postfix_spf is defined and hardenmail_postfix_spf
-    - name: yum | install greylist package for Postfix
+    - name: Redhat | install greylist package for Postfix
       ansible.builtin.yum: name=postgrey state=present
       when: hardenmail_postfix_greylist is defined and hardenmail_postfix_greylist
   when: ansible_os_family == "RedHat"
 
-- name: hardening of postfix - DNSBL
+- name: Hardening of postfix - DNSBL
   ansible.builtin.replace:
     dest: /etc/postfix/main.cf
     regexp: "{{ item.re }}"
@@ -45,10 +45,10 @@
         l: 'smtpd_recipient_restrictions = \1,reject_rbl_client cbl.abuseat.org, reject_rbl_client b.barracudacentral.org'
     }
   notify:
-    - restart postfix
+    - Restart postfix
   when: hardenmail_postfix_dnsbl is defined and hardenmail_postfix_dnsbl
 
-- name: restrict listen to loopback only
+- name: Restrict listen to loopback only
   ansible.builtin.lineinfile:
     dest: /etc/postfix/main.cf
     regexp: "^inet_interfaces ="
@@ -57,7 +57,7 @@
     backup: yes
   when: hardenmail_postfix_restrictlisten is defined and hardenmail_postfix_restrictlisten
   notify:
-    - restart postfix
+    - Restart postfix
 
 - name: Postfix | set banner settings
   ansible.builtin.lineinfile:
@@ -68,7 +68,7 @@
   with_items:
     - { re: '^smtpd_banner = .*', rep: 'smtpd_banner = $myhostname ESMTP Sorry, No banner' }
   notify:
-    - restart postfix
+    - Restart postfix
 
 - name: Postfix | basic settings review
   ansible.builtin.blockinfile:
@@ -102,7 +102,7 @@
       smtpd_forbidden_commands = CONNECT,GET,POST,USER,PASS
     mode: '0644'
   notify:
-    - restart postfix
+    - Restart postfix
 
 - name: Postfix | TLS hardening
   ansible.builtin.blockinfile:
@@ -132,9 +132,9 @@
       smtp_sasl_security_options = {{ hardenmail_postfix_smtp_sasl_security_options | default('noanonymous') }}
     mode: '0644'
   notify:
-    - restart postfix
+    - Restart postfix
 
-- name: hardening of postfix - SPF 1
+- name: Hardening of postfix - SPF 1
   ansible.builtin.lineinfile:
     dest: /etc/postfix/main.cf
     regexp: "{{ item.re }}"
@@ -144,13 +144,13 @@
   with_items:
     - { re: '^policy-spf_time_limit =', l: 'policy-spf_time_limit = 3600s' }
   notify:
-    - restart postfix
+    - Restart postfix
   when: >
     hardenmail_postfix_spf is defined and hardenmail_postfix_spf and
     ansible_distribution_major_version|int < 8
 
 ## + reject_invalid_hostname?
-- name: hardening of postfix - SPF 2
+- name: Hardening of postfix - SPF 2
   ansible.builtin.replace:
     dest: /etc/postfix/main.cf
     regexp: "{{ item.re }}"
@@ -162,12 +162,12 @@
         r: 'smtpd_recipient_restrictions = \1,permit_mynetworks, permit_sasl_authenticated, check_recipient_access mysql:/etc/postfix/mysql-virtual_recipient.cf, reject_unauth_destination, reject_unknown_recipient_domain, check_policy_service unix:private/policy-spf'  # noqa 204
     }
   notify:
-    - restart postfix
+    - Restart postfix
   when: >
     hardenmail_postfix_spf is defined and hardenmail_postfix_spf and
     ansible_distribution_major_version|int < 8
 
-- name: hardening of postfix - SPF 3
+- name: Hardening of postfix - SPF 3
   ansible.builtin.lineinfile:
     dest: /etc/postfix/master.cf
     regexp: "{{ item.re }}"
@@ -178,12 +178,12 @@
     - { re: '^policy-spf', l: 'policy-spf  unix  -       n       n       -       -       spawn' }
     - { re: '^     user=nobody argv=/usr/bin/policyd-spf', l: '     user=nobody argv=/usr/bin/policyd-spf' }
   notify:
-    - restart postfix
+    - Restart postfix
   when: >
     hardenmail_postfix_spf is defined and hardenmail_postfix_spf and
     ansible_distribution_major_version|int < 8
 
-- name: hardening of postfix - Greylist
+- name: Hardening of postfix - Greylist
   ansible.builtin.replace:
     dest: /etc/postfix/main.cf
     regexp: "{{ item.re }}"
@@ -195,7 +195,7 @@
         r: 'smtpd_recipient_restrictions = \1,check_policy_service inet:127.0.0.1:10023'
     }
   notify:
-    - restart postfix
+    - Restart postfix
   when: >
     hardenmail_postfix_spf is defined and hardenmail_postfix_spf and
     ansible_distribution_major_version|int < 8
