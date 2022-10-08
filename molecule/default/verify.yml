@@ -3,6 +3,11 @@
 - name: Verify
   hosts: mailserver
   pre_tasks:
+    - name: RedHat | Ensure pgrep is present
+      ansible.builtin.package:
+        name: procps-ng
+        state: present
+      when: ansible_os_family == "RedHat" and ansible_distribution_major_version | int >= 8
     - name: RedHat | set packages to validate
       ansible.builtin.set_fact:
         verify_pkgs:
