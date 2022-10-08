@@ -80,6 +80,13 @@
            postconf.rc == 0"
 
     - name: Ubuntu 18.04 | Not container
+      when: >
+        not (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int == 18) and
+        not (
+          ansible_os_family == "RedHat" and ansible_virtualization_type is defined and (
+            ansible_virtualization_type == "docker" or ansible_virtualization_type == "containerd"
+          )
+        )
       block:
         - name: Openssl s_client
           ansible.builtin.shell: 'echo | openssl s_client -starttls smtp -connect localhost:25'
@@ -91,14 +98,8 @@
               "'/CONNECTED/' in s_client.stdout and
                'SSL handshake has read' in s_client.stdout and
                'Protocol  : TLSv1.2' in s_client.stdout"
-      when: >
-        not (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int == 18) and
-        not (
-          ansible_os_family == "RedHat" and ansible_virtualization_type is defined and (
-            ansible_virtualization_type == "docker" or ansible_virtualization_type == "containerd"
-          )
-        )
     - name: Ubuntu 18.04
+      when: (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int == 18)
       block:
         - name: Focal | openssl s_client
           ansible.builtin.shell: 'echo | openssl s_client -starttls smtp -connect localhost:25'
@@ -110,8 +111,14 @@
               "'/CONNECTED/' in s_client.stdout and
                'SSL handshake has read' in s_client.stdout and
                'New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384' in s_client.stdout"
-      when: (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int == 18)
     - name: Ubuntu 18.04+, Redhat not container
+      when: >
+        not (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int == 18) and
+        not (
+          ansible_os_family == "RedHat" and ansible_virtualization_type is defined and (
+            ansible_virtualization_type == "docker" or ansible_virtualization_type == "containerd"
+          )
+        )
       block:
         - name: Openssl s_client - EDH
           ansible.builtin.shell: 'echo | timeout 15 openssl s_client -starttls smtp -connect localhost:25 -cipher "EDH"'
@@ -123,14 +130,8 @@
               "'/CONNECTED/' in s_client2.stdout and
                'Server Temp key: DH, 2048 bits' in s_client2.stdout and
                'Server public key.*2048 bit' in s_client2.stdout"
-      when: >
-        not (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int == 18) and
-        not (
-          ansible_os_family == "RedHat" and ansible_virtualization_type is defined and (
-            ansible_virtualization_type == "docker" or ansible_virtualization_type == "containerd"
-          )
-        )
     - name: Ubuntu 18.04
+      when: (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int == 18)
       block:
         - name: Focal | openssl s_client - EDH
           ansible.builtin.shell: 'echo | timeout 15 openssl s_client -starttls smtp -connect localhost:25 -cipher "EDH"'
@@ -142,4 +143,3 @@
               "'/CONNECTED/' in s_client2.stdout and
                'Server Temp Key: X25519, 253 bits' in s_client2.stdout and
                'Server public key.*2048 bit' in s_client2.stdout"
-      when: (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int == 18)

@@ -12,12 +12,16 @@
   ansible.builtin.include_vars: "Alpine.yml"
   when: ansible_os_family == "Alpine"
 
-- import_tasks: postfix.yml
+- name: Import postfix
+  ansible.builtin.import_tasks: postfix.yml
 
-- import_tasks: aliases.yml
+- name: Import aliases
+  ansible.builtin.import_tasks: aliases.yml
 
-- import_tasks: procmail.yml
+- name: Import procmail
+  ansible.builtin.import_tasks: procmail.yml
   when: hardenmail_postfix_procmail
 
-- import_tasks: testing.yml
+- name: Import testing
+  ansible.builtin.import_tasks: testing.yml
   when: hardenmail_testing

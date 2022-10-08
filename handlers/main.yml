@@ -1,7 +1,9 @@
 ---
 
 - name: Restart postfix
-  ansible.builtin.service: name=postfix state=restarted
+  ansible.builtin.service:
+    name: postfix
+    state: restarted
   become: yes
   when: >
     not (

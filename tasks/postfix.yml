@@ -4,6 +4,7 @@
 ## https://www.howtoforge.com/hardening-postfix-for-ispconfig-3
 
 - name: Debian
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
   block:
     - name: Debian | Install Postfix
       ansible.builtin.apt:
@@ -12,26 +13,35 @@
         update_cache: yes
         cache_valid_time: 3600
     - name: Debian | install SPF package for Postfix
-      ansible.builtin.apt: name=postfix-policyd-spf-python state=present
+      ansible.builtin.apt:
+        name: postfix-policyd-spf-python
+        state: present
       # apt: name=postfix-policyd-spf-perl state=present
       when: hardenmail_postfix_spf is defined and hardenmail_postfix_spf
     - name: Debian | install greylist package for Postfix
-      ansible.builtin.apt: name=postgrey state=present
+      ansible.builtin.apt:
+        name: postgrey
+        state: present
       when: hardenmail_postfix_greylist is defined and hardenmail_postfix_greylist
-  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
 - name: RedHat
+  when: ansible_os_family == "RedHat"
   block:
     - name: Redhat | Install Postfix
-      ansible.builtin.yum: name=postfix state=present
+      ansible.builtin.yum:
+        name: postfix
+        state: present
     - name: Redhat | install SPF package for Postfix
-      ansible.builtin.yum: name=pypolicyd-spf state=present
+      ansible.builtin.yum:
+        name: pypolicyd-spf
+        state: present
       when: >
         hardenmail_postfix_spf is defined and hardenmail_postfix_spf
     - name: Redhat | install greylist package for Postfix
-      ansible.builtin.yum: name=postgrey state=present
+      ansible.builtin.yum:
+        name: postgrey
+        state: present
       when: hardenmail_postfix_greylist is defined and hardenmail_postfix_greylist
-  when: ansible_os_family == "RedHat"
 
 - name: Hardening of postfix - DNSBL
   ansible.builtin.replace:
