@@ -1,5 +1,5 @@
 ---
 
 - src: https://github.com/juju4/ansible-redhat-epel/
-  version: master
+  version: main
   name: juju4.redhat_epel
