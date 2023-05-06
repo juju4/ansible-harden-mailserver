@@ -93,6 +93,8 @@
             cmd: |
               set -o pipefail
               echo | openssl s_client -starttls smtp -connect localhost:25
+          args:
+            executable: /bin/bash
           changed_when: false
           register: s_client
         - name: Validate openssl s_client
@@ -109,6 +111,8 @@
             cmd: |
               set -o pipefail
               echo | openssl s_client -starttls smtp -connect localhost:25
+          args:
+            executable: /bin/bash
           changed_when: false
           register: s_client
         - name: Focal | Validate openssl s_client
@@ -131,6 +135,8 @@
             cmd: |
               set -o pipefail
               echo | timeout 15 openssl s_client -starttls smtp -connect localhost:25 -cipher "EDH"
+          args:
+            executable: /bin/bash
           changed_when: false
           register: s_client2
         - name: Validate openssl s_client - EDH
@@ -147,6 +153,8 @@
             cmd: |
               set -o pipefail
               echo | timeout 15 openssl s_client -starttls smtp -connect localhost:25 -cipher "EDH"
+          args:
+            executable: /bin/bash
           changed_when: false
           register: s_client2
         - name: Focal | Validate openssl s_client - EDH
