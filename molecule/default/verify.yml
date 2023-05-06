@@ -89,7 +89,10 @@
         )
       block:
         - name: Openssl s_client
-          ansible.builtin.shell: 'echo | openssl s_client -starttls smtp -connect localhost:25'
+          ansible.builtin.shell:
+            cmd: |
+              set -o pipefail
+              echo | openssl s_client -starttls smtp -connect localhost:25
           changed_when: false
           register: s_client
         - name: Validate openssl s_client
@@ -102,7 +105,10 @@
       when: (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int == 18)
       block:
         - name: Focal | openssl s_client
-          ansible.builtin.shell: 'echo | openssl s_client -starttls smtp -connect localhost:25'
+          ansible.builtin.shell:
+            cmd: |
+              set -o pipefail
+              echo | openssl s_client -starttls smtp -connect localhost:25
           changed_when: false
           register: s_client
         - name: Focal | Validate openssl s_client
@@ -121,7 +127,10 @@
         )
       block:
         - name: Openssl s_client - EDH
-          ansible.builtin.shell: 'echo | timeout 15 openssl s_client -starttls smtp -connect localhost:25 -cipher "EDH"'
+          ansible.builtin.shell:
+            cmd: |
+              set -o pipefail
+              echo | timeout 15 openssl s_client -starttls smtp -connect localhost:25 -cipher "EDH"
           changed_when: false
           register: s_client2
         - name: Validate openssl s_client - EDH
@@ -134,7 +143,10 @@
       when: (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int == 18)
       block:
         - name: Focal | openssl s_client - EDH
-          ansible.builtin.shell: 'echo | timeout 15 openssl s_client -starttls smtp -connect localhost:25 -cipher "EDH"'
+          ansible.builtin.shell:
+            cmd: |
+              set -o pipefail
+              echo | timeout 15 openssl s_client -starttls smtp -connect localhost:25 -cipher "EDH"
           changed_when: false
           register: s_client2
         - name: Focal | Validate openssl s_client - EDH

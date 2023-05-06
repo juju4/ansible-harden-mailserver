@@ -1,7 +1,8 @@
 ---
 
-- hosts: all
+- name: Test Integration playbook
+  hosts: all
   vars:
-    - hardenmail_testing: true
+    hardenmail_testing: true
   roles:
     - juju4.harden_mailserver

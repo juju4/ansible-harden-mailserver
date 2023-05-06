@@ -13,5 +13,6 @@
     )
 
 - name: Rebuild aliases
-  ansible.builtin.command: newaliases
+  ansible.builtin.command:  # noqa no-changed-when
+    cmd: newaliases
   become: yes
