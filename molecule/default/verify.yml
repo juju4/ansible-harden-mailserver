@@ -13,6 +13,11 @@
         verify_pkgs:
           - pypolicyd-spf
       when: ansible_os_family == "RedHat"
+    - name: Debian | Ensure pgrep is present
+      ansible.builtin.package:
+        name: procps
+        state: present
+      when: ansible_os_family == 'Debian'
     - name: Debian | set packages to validate
       ansible.builtin.set_fact:
         verify_pkgs:
