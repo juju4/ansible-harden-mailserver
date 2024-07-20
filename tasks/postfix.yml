@@ -28,17 +28,17 @@
   when: ansible_os_family == "RedHat"
   block:
     - name: Redhat | Install Postfix
-      ansible.builtin.yum:
+      ansible.builtin.dnf:
         name: postfix
         state: present
     - name: Redhat | install SPF package for Postfix
-      ansible.builtin.yum:
+      ansible.builtin.dnf:
         name: pypolicyd-spf
         state: present
       when: >
         hardenmail_postfix_spf is defined and hardenmail_postfix_spf
     - name: Redhat | install greylist package for Postfix
-      ansible.builtin.yum:
+      ansible.builtin.dnf:
         name: postgrey
         state: present
       when: hardenmail_postfix_greylist is defined and hardenmail_postfix_greylist
