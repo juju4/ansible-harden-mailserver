@@ -1,0 +1,163 @@
+---
+
+- name: Verify
+  hosts: mailserver
+  pre_tasks:
+    - name: RedHat | Ensure pgrep is present
+      ansible.builtin.package:
+        name: procps-ng
+        state: present
+      when: ansible_os_family == "RedHat" and ansible_distribution_major_version | int >= 8
+    - name: RedHat | set packages to validate
+      ansible.builtin.set_fact:
+        exim_user: root
+        exim_process: exim
+        exim_conf: /etc/exim4/update-exim4.conf.conf
+        verify_pkgs:
+          - exim
+      when: ansible_os_family == "RedHat"
+    - name: Debian | Ensure pgrep is present
+      ansible.builtin.package:
+        name: procps
+        state: present
+      when: ansible_os_family == 'Debian'
+    - name: Debian | set packages to validate
+      ansible.builtin.set_fact:
+        exim_user: Debian-exim
+        exim_process: exim4
+        exim_conf: /etc/exim4/update-exim4.conf.conf
+        verify_pkgs:
+          - spf-tools-perl
+      when: ansible_os_family == 'Debian'
+  tasks:
+    - name: Gather package facts
+      ansible.builtin.package_facts:
+        manager: auto
+    - name: Validate that needed packages are present
+      ansible.builtin.assert:
+        that: ansible_facts.packages[item]
+      with_items: "{{ verify_pkgs }}"
+
+    - name: Ensure process is running
+      ansible.builtin.command: "pgrep -u {{ exim_user }} {{ exim_process }}"
+      register: ps
+      changed_when: false
+      ignore_errors: true
+    - name: Validate ps output
+      ansible.builtin.assert:
+        that: ps.stdout
+      when: >
+        not (
+          ansible_os_family == "RedHat" and ansible_virtualization_type is defined and (
+            ansible_virtualization_type == "docker" or ansible_virtualization_type == "containerd"
+          )
+        )
+
+    - name: Ensure ports are listening
+      ansible.builtin.wait_for:
+        host: "{{ item.h }}"
+        port: "{{ item.p }}"
+        timeout: 10
+      with_items:
+        - { h: localhost, p: 25 }
+      when: >
+        not (
+          ansible_os_family == "RedHat" and ansible_virtualization_type is defined and (
+            ansible_virtualization_type == "docker" or ansible_virtualization_type == "containerd"
+          )
+        )
+
+    - name: Fetch content of exim conf
+      ansible.builtin.slurp:
+        src: "{{ exim_conf }}"
+      register: cfg
+    - name: Validate conf
+      ansible.builtin.assert:
+        that: >
+          "'dc_local_interfaces=' in cfg['content'] | b64decode and
+           'dc_relay_nets=' in cfg['content'] | b64decode"
+
+    - name: Ubuntu 18.04 | Not container
+      when: >
+        not (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int == 18) and
+        not (
+          ansible_os_family == "RedHat" and ansible_virtualization_type is defined and (
+            ansible_virtualization_type == "docker" or ansible_virtualization_type == "containerd"
+          )
+        )
+      block:
+        - name: Openssl s_client
+          ansible.builtin.shell:
+            cmd: |
+              set -o pipefail
+              echo | openssl s_client -starttls smtp -connect localhost:25
+          args:
+            executable: /bin/bash
+          changed_when: false
+          register: s_client
+        - name: Validate openssl s_client
+          ansible.builtin.assert:
+            that: >
+              "'/CONNECTED/' in s_client.stdout and
+               'SSL handshake has read' in s_client.stdout and
+               'Protocol  : TLSv1.2' in s_client.stdout"
+    - name: Ubuntu 18.04
+      when: (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int == 18)
+      block:
+        - name: Focal | openssl s_client
+          ansible.builtin.shell:
+            cmd: |
+              set -o pipefail
+              echo | openssl s_client -starttls smtp -connect localhost:25
+          args:
+            executable: /bin/bash
+          changed_when: false
+          register: s_client
+        - name: Focal | Validate openssl s_client
+          ansible.builtin.assert:
+            that: >
+              "'/CONNECTED/' in s_client.stdout and
+               'SSL handshake has read' in s_client.stdout and
+               'New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384' in s_client.stdout"
+    - name: Ubuntu 18.04+, Redhat not container
+      when: >
+        not (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int == 18) and
+        not (
+          ansible_os_family == "RedHat" and ansible_virtualization_type is defined and (
+            ansible_virtualization_type == "docker" or ansible_virtualization_type == "containerd"
+          )
+        )
+      block:
+        - name: Openssl s_client - EDH
+          ansible.builtin.shell:
+            cmd: |
+              set -o pipefail
+              echo | timeout 15 openssl s_client -starttls smtp -connect localhost:25 -cipher "EDH"
+          args:
+            executable: /bin/bash
+          changed_when: false
+          register: s_client2
+        - name: Validate openssl s_client - EDH
+          ansible.builtin.assert:
+            that: >
+              "'/CONNECTED/' in s_client2.stdout and
+               'Server Temp key: DH, 2048 bits' in s_client2.stdout and
+               'Server public key.*2048 bit' in s_client2.stdout"
+    - name: Ubuntu 18.04
+      when: (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int == 18)
+      block:
+        - name: Focal | openssl s_client - EDH
+          ansible.builtin.shell:
+            cmd: |
+              set -o pipefail
+              echo | timeout 15 openssl s_client -starttls smtp -connect localhost:25 -cipher "EDH"
+          args:
+            executable: /bin/bash
+          changed_when: false
+          register: s_client2
+        - name: Focal | Validate openssl s_client - EDH
+          ansible.builtin.assert:
+            that: >
+              "'/CONNECTED/' in s_client2.stdout and
+               'Server Temp Key: X25519, 253 bits' in s_client2.stdout and
+               'Server public key.*2048 bit' in s_client2.stdout"
