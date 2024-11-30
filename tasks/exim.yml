@@ -1,0 +1,121 @@
+---
+# https://www.exim.org/exim-html-current/doc/html/spec_html/ch-security_considerations.html
+# https://wiki.archlinux.org/title/Exim#Hardening
+
+- name: Debian
+  when:
+    - ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+  block:
+    - name: Debian | Install Postfix
+      ansible.builtin.apt:
+        name: exim4-daemon-light
+        state: present
+        update_cache: yes
+        cache_valid_time: 3600
+
+- name: Exim Greylisting
+  when:
+    - ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+    - hardenmail_exim_greylist | bool
+  block:
+    - name: Debian | install greylisting package for Exim
+      ansible.builtin.apt:
+        name: greylistd
+        state: present
+
+# https://wiki.debian.org/PkgExim4UserFAQ#Why_are_you_not_using_exim.27s_built-in_SPF_interface.3F
+- name: Exim SPF
+  when:
+    - ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+    - hardenmail_exim_spf is defined and hardenmail_exim_spf | bool
+  block:
+    - name: Debian | install SPF package for Exim
+      ansible.builtin.apt:
+        name: spf-tools-perl
+        state: present
+
+- name: Exim | Set SPF
+  ansible.builtin.lineinfile:
+    dest: "/etc/exim4/exim4.conf.localmacros"
+    regexp: "^CHECK_RCPT_SPF=.*"
+    line: "CHECK_RCPT_SPF={{ hardenmail_exim_spf | bool | lower }}"
+    mode: "0600"
+    owner: root
+    create: true
+  notify:
+    - Run update-exim4.conf
+    - Restart exim
+
+- name: Exim | Set DNSBL
+  ansible.builtin.replace:
+    dest: "/etc/exim4/exim4.conf.localmacros"
+    regexp: "^CHECK_RCPT_IP_DNSBL = .*"
+    replace: "CHECK_RCPT_IP_DNSBL = {{ hardenmail_exim_dnsbl }}"
+    mode: '0644'
+    backup: yes
+  notify:
+    - Run update-exim4.conf
+    - Restart exim
+
+- name: Exim | Ensure TLS is enabled
+  ansible.builtin.lineinfile:
+    dest: "/etc/exim4/exim4.conf.localmacros"
+    regexp: "^MAIN_TLS_ENABLE = .*"
+    line: "MAIN_TLS_ENABLE = 1"
+    mode: "0600"
+    owner: root
+    create: true
+  notify:
+    - Run update-exim4.conf
+    - Restart exim
+
+- name: Exim | Configure listening interfaces
+  ansible.builtin.lineinfile:
+    dest: /etc/exim4/update-exim4.conf.conf
+    regexp: "^dc_local_interfaces=.*"
+    line: "dc_local_interfaces='{{ hardenmail_exim_local_interfaces }}'"
+    mode: '0644'
+    backup: yes
+  notify:
+    - Run update-exim4.conf
+    - Restart exim
+
+- name: Exim | Configure relay networks
+  ansible.builtin.lineinfile:
+    dest: /etc/exim4/update-exim4.conf.conf
+    regexp: "^dc_relay_nets=.*"
+    line: "dc_relay_nets='{{ hardenmail_exim_dc_relay_nets }}'"
+    mode: '0644'
+    backup: yes
+  notify:
+    - Run update-exim4.conf
+    - Restart exim
+
+- name: Exim | Set Rate limit
+  ansible.builtin.lineinfile:
+    dest: /etc/exim4/conf.d/main/99_exim4-hardenmail_rate_limit
+    regexp: "{{ item.re }}"
+    line: "{{ item.rep }}"
+    mode: '0644'
+    create: true
+  with_items:
+    - { re: '^remote_max_parallel=.*',
+        rep: 'remote_max_parallel={{ hardenmail_exim_remote_max_parallel }}' }
+    - { re: '^queue_run_max=.*',
+        rep: 'queue_run_max={{ hardenmail_exim_queue_run_max }}' }
+    - { re: '^smtp_accept_queue_per_connection=.*',
+        rep: 'smtp_accept_queue_per_connection={{ hardenmail_exim_smtp_accept_queue_per_connection }}' }
+  notify:
+    - Run update-exim4.conf
+    - Restart exim
+
+- name: Exim | Set banner settings
+  ansible.builtin.lineinfile:
+    dest: "/etc/exim4/exim4.conf.localmacros"
+    regexp: "^MAIN_SMTP_BANNER=.*"
+    line: "MAIN_SMTP_BANNER={{ hardenmail_exim_smtp_banner }}"
+    mode: '0644'
+    create: true
+  notify:
+    - Run update-exim4.conf
+    - Restart exim

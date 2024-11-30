@@ -1,5 +1,8 @@
 ---
+hardenmail_mta: postfix
+# hardenmail_mta: exim
 
+# Postfix
 hardenmail_postfix_restrictlisten: true
 hardenmail_postfix_listenif: loopback-only
 
@@ -23,6 +26,19 @@ hardenmail_postfix_tls_medium_cipherlist: 'AES128+EECDH:AES128+EDH'
 
 hardenmail_postfix_securitylevel: 'encrypt'
 
+# Exim
+hardenmail_exim_local_interfaces: '127.0.0.1 ; ::1'
+hardenmail_exim_dc_relay_nets: ''
+hardenmail_exim_smtp_banner: "Sorry, No banner"
+hardenmail_exim_dnsbl: sbl.spamhaus.org:bl.spamcop.net:cbl.abuseat.org:b.barracudacentral.org
+hardenmail_exim_spf: true
+hardenmail_exim_greylist: false
+# Adapt to your load
+hardenmail_exim_remote_max_parallel: 5
+hardenmail_exim_queue_run_max: 10
+hardenmail_exim_smtp_accept_queue_per_connection: 10
+
+# General
 # suggested aliases mostly from RFC2142. advise to point to your company entry point
 hardenmail_aliases:
   - { n: webmaster, v: 'root' }

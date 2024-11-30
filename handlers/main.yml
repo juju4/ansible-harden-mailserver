@@ -16,3 +16,20 @@
   ansible.builtin.command:  # noqa no-changed-when
     cmd: newaliases
   become: yes
+
+- name: Run update-exim4.conf
+  ansible.builtin.command:  # noqa no-changed-when
+    cmd: update-exim4.conf
+
+- name: Restart exim
+  ansible.builtin.service:
+    name: "exim4"
+    state: "restarted"
+  when: >
+    not (
+      ansible_os_family == "RedHat" and ansible_virtualization_type is defined and (
+        ansible_virtualization_type == "docker"
+        or ansible_virtualization_type == "containerd"
+        or ansible_virtualization_type == "container"
+      )
+    )

@@ -14,6 +14,13 @@
 
 - name: Import postfix
   ansible.builtin.import_tasks: postfix.yml
+  when:
+    - hardenmail_mta == 'postfix'
+
+- name: Import exim
+  ansible.builtin.import_tasks: exim.yml
+  when:
+    - hardenmail_mta == 'exim'
 
 - name: Import aliases
   ansible.builtin.import_tasks: aliases.yml
