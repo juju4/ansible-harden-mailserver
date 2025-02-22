@@ -63,7 +63,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install molecule molecule-plugins docker ansible-lint flake8 testinfra ansible
           mkdir -p $HOME/.ansible/roles && ln -s $GITHUB_WORKSPACE/$ANSIBLE_ROLE $HOME/.ansible/roles/ || true
-          [ -f molecule/${SUITE}/requirements.yml ] && ansible-galaxy install -r molecule/${SUITE}/requirements.yml || true
+          [ -f molecule/${ANSIBLE_SUITE}/requirements.yml ] && ansible-galaxy install -r molecule/${ANSIBLE_SUITE}/requirements.yml || true
       - name: Fetch central settings repository
         run: |
           export settings_repo="https://raw.githubusercontent.com/juju4/ansible-ci-settings/main"
@@ -85,7 +85,7 @@ jobs:
         continue-on-error: true
       - name: run test
         run: |
-          cd $GITHUB_WORKSPACE/$ANSIBLE_ROLE && molecule test
+          cd $GITHUB_WORKSPACE/$ANSIBLE_ROLE && molecule test --scenario-name ${ANSIBLE_SUITE}
         env:
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'
