@@ -132,6 +132,8 @@
       smtpd_tls_mandatory_ciphers = medium
       tls_medium_cipherlist = {{ hardenmail_postfix_tls_medium_cipherlist }}
       smtp_tls_exclude_ciphers = {{ hardenmail_postfix_smtp_tls_exclude_ciphers }}
+      # Ensure have logs with encryption level
+      smtp_tls_loglevel = {{ hardenmail_postfix_tlsloglevel | default(1) }}
 
       ## http://askubuntu.com/questions/228938/how-can-i-configure-postfix-to-send-all-email-through-my-gmail-account
       #smtp_tls_policy_maps = hash:/etc/postfix/tls_policy
