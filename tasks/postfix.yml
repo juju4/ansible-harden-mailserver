@@ -8,7 +8,9 @@
   block:
     - name: Debian | Install Postfix
       ansible.builtin.apt:
-        name: postfix
+        name:
+          - postfix
+          - ca-certificates
         state: present
         update_cache: yes
         cache_valid_time: 3600
@@ -132,6 +134,7 @@
       smtpd_tls_mandatory_ciphers = medium
       tls_medium_cipherlist = {{ hardenmail_postfix_tls_medium_cipherlist }}
       smtp_tls_exclude_ciphers = {{ hardenmail_postfix_smtp_tls_exclude_ciphers }}
+      smtp_tls_CAfile = /etc/ssl/certs/ca-certificates.crt
       # Ensure have logs with encryption level
       smtp_tls_loglevel = {{ hardenmail_postfix_tlsloglevel | default(1) }}
 
