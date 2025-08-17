@@ -31,13 +31,13 @@ jobs:
           - molecule_distro: 'ubuntu:22.04'
             experimental: true
             suite: default
-          - molecule_distro: 'debian:12'
-            experimental: true
-            suite: default
-          - molecule_distro: 'debian:11'
+          - molecule_distro: 'debian:13'
             experimental: true
             suite: default
           - molecule_distro: 'debian:12'
+            experimental: true
+            suite: default
+          - molecule_distro: 'debian:13'
             experimental: true
             suite: default-exim
     env:
