@@ -39,7 +39,7 @@
     dest: "/etc/exim4/exim4.conf.localmacros"
     regexp: "^CHECK_RCPT_SPF=.*"
     line: "CHECK_RCPT_SPF={{ hardenmail_exim_spf | bool | lower }}"
-    mode: "0600"
+    mode: '0644'
     owner: root
     create: true
   notify:
@@ -62,7 +62,7 @@
     dest: "/etc/exim4/exim4.conf.localmacros"
     regexp: "^MAIN_TLS_ENABLE = .*"
     line: "MAIN_TLS_ENABLE = 1"
-    mode: "0600"
+    mode: '0644'
     owner: root
     create: true
   notify:
