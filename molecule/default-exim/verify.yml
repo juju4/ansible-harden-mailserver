@@ -77,8 +77,9 @@
           "'dc_local_interfaces=' in cfg['content'] | b64decode and
            'dc_relay_nets=' in cfg['content'] | b64decode"
 
-    - name: Ubuntu 18.04 | Not container
+    - name: Ubuntu 18.04+ | Not container
       when: >
+        not (ansible_distribution == "Debian" and ansible_distribution_major_version | int >= 13) and
         not (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int == 18) and
         not (
           ansible_os_family == "RedHat" and ansible_virtualization_type is defined and (
@@ -161,3 +162,23 @@
               "'/CONNECTED/' in s_client2.stdout and
                'Server Temp Key: X25519, 253 bits' in s_client2.stdout and
                'Server public key.*2048 bit' in s_client2.stdout"
+    - name: Debian 13+ exim
+      when:
+        - (ansible_distribution == "Debian" and ansible_distribution_major_version | int >= 13)
+      block:
+        - name: Openssl s_client
+          ansible.builtin.shell:
+            cmd: |
+              set -o pipefail
+              echo | openssl s_client -starttls smtp -connect localhost:25
+          args:
+            executable: /bin/bash
+          changed_when: false
+          failed_when: false
+          register: s_client
+        - name: Validate openssl s_client
+          ansible.builtin.assert:
+            that: >
+              "'/CONNECTED/' in s_client.stdout and
+               'SSL handshake has read' in s_client.stdout and
+               'Protocol  : TLSv1.3' in s_client.stdout"
