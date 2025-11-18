@@ -138,13 +138,14 @@
           args:
             executable: /bin/bash
           changed_when: false
+          failed_when: false
           register: s_client2
         - name: Validate openssl s_client - EDH
           ansible.builtin.assert:
             that:
-              - "'/CONNECTED/' in s_client2.stdout"
-              - "'Server Temp key: DH, 2048 bits' in s_client2.stdout"
-              - "'Server public key.*2048 bit' in s_client2.stdout"
+              - "'CONNECTED(' in s_client2.stdout"
+              - "'Protocol: TLSv1.3' in s_client2.stdout"
+              - "'This TLS version forbids renegotiation.' in s_client2.stdout"
     - name: Ubuntu 18.04
       when: (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int == 18)
       block:

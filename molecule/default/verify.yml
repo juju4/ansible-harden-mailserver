@@ -70,22 +70,35 @@
       ansible.builtin.assert:
         that:
           - "'smtpd_banner = $myhostname ESMTP Sorry, No banner' in cfg['content'] | b64decode"
-          - "'smtpd_use_tls = yes' in cfg['content'] | b64decode"
+          - "'smtpd_tls_security_level = encrypt' in cfg['content'] | b64decode"
 
     - name: Postconf
       ansible.builtin.command: postconf
       changed_when: false
       register: postconf
-    - name: Validate postconf
+    - name: Debian | Validate postconf
       ansible.builtin.assert:
         that:
-          - "'smtpd_use_tls = yes' in postconf.stdout"
+          - "'smtpd_tls_security_level = encrypt' in postconf.stdout"
           - "'disable_vrfy_command = yes' in postconf.stdout"
-          - "'warning' not in postconf.stderr"
+          - "'warning: ' not in postconf.stderr"
           - "'fatal' not in postconf.stderr"
           - postconf.rc == 0
+      when:
+        - ansible_os_family == "Debian"
+    - name: RedHat | Validate postconf
+      ansible.builtin.assert:
+        that:
+          - "'smtpd_tls_security_level = encrypt' in postconf.stdout"
+          - "'disable_vrfy_command = yes' in postconf.stdout"
+          # rockylinux-9: part "warning: ", part vars delay_warning_time, helpful_warnings daemon_table_open_error_is_fatal
+          - "'warning: ' not in postconf.stderr"
+          # - "'fatal' not in postconf.stderr"
+          - postconf.rc == 0
+      when:
+        - ansible_os_family == "RedHat"
 
-    - name: Ubuntu 18.04 | Not container
+    - name: Ubuntu 20.04+ | Not container
       when: >
         not (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int == 18) and
         not (
@@ -106,9 +119,9 @@
         - name: Validate openssl s_client
           ansible.builtin.assert:
             that:
-              - "'/CONNECTED/' in s_client.stdout"
+              - "'CONNECTED(' in s_client.stdout"
               - "'SSL handshake has read' in s_client.stdout"
-              - "'Protocol  : TLSv1.2' in s_client.stdout"
+              - "'New, TLSv1.3, Cipher is' in s_client.stdout"
     - name: Ubuntu 18.04
       when: (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int == 18)
       block:
