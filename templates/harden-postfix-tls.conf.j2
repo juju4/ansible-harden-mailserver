@@ -1,7 +1,6 @@
 {{ ansible_managed | comment }}
 
 ## https://cipherli.st/
-smtpd_use_tls=yes
 smtpd_tls_security_level = {{ hardenmail_postfix_securitylevel | default('encrypt') }}
 smtpd_tls_auth_only = yes
 smtpd_tls_cert_file=/etc/ssl/postfix.cert

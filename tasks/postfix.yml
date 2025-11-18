@@ -123,8 +123,7 @@
     content: |
       ## https://cipherli.st/
       smtp_use_tls = yes
-      smtpd_use_tls = yes
-      smtpd_tls_security_level = may
+      smtpd_tls_security_level = {{ hardenmail_postfix_securitylevel }}
       smtpd_tls_auth_only = yes
       smtpd_tls_cert_file = {{ hardenmail_postfix_cert_file }}
       smtpd_tls_key_file = {{ hardenmail_postfix_key_file }}
