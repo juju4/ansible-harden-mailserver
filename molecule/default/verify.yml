@@ -68,9 +68,9 @@
       register: cfg
     - name: Validate main.cf
       ansible.builtin.assert:
-        that: >
-          "'smtpd_banner = $myhostname ESMTP Sorry, No banner' in cfg['content'] | b64decode and
-           'smtpd_use_tls = yes' in cfg['content'] | b64decode"
+        that:
+          - "'smtpd_banner = $myhostname ESMTP Sorry, No banner' in cfg['content'] | b64decode"
+          - "'smtpd_use_tls = yes' in cfg['content'] | b64decode"
 
     - name: Postconf
       ansible.builtin.command: postconf
@@ -78,12 +78,12 @@
       register: postconf
     - name: Validate postconf
       ansible.builtin.assert:
-        that: >
-          "'smtpd_use_tls = yes' in postconf.stdout and
-           'disable_vrfy_command = yes' in postconf.stdout and
-           'warning' not in postconf.stderr and
-           'fatal' not in postconf.stderr and
-           postconf.rc == 0"
+        that:
+          - "'smtpd_use_tls = yes' in postconf.stdout"
+          - "'disable_vrfy_command = yes' in postconf.stdout"
+          - "'warning' not in postconf.stderr"
+          - "'fatal' not in postconf.stderr"
+          - postconf.rc == 0
 
     - name: Ubuntu 18.04 | Not container
       when: >
@@ -105,10 +105,10 @@
           register: s_client
         - name: Validate openssl s_client
           ansible.builtin.assert:
-            that: >
-              "'/CONNECTED/' in s_client.stdout and
-               'SSL handshake has read' in s_client.stdout and
-               'Protocol  : TLSv1.2' in s_client.stdout"
+            that:
+              - "'/CONNECTED/' in s_client.stdout"
+              - "'SSL handshake has read' in s_client.stdout"
+              - "'Protocol  : TLSv1.2' in s_client.stdout"
     - name: Ubuntu 18.04
       when: (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int == 18)
       block:
@@ -123,10 +123,10 @@
           register: s_client
         - name: Focal | Validate openssl s_client
           ansible.builtin.assert:
-            that: >
-              "'/CONNECTED/' in s_client.stdout and
-               'SSL handshake has read' in s_client.stdout and
-               'New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384' in s_client.stdout"
+            that:
+              - "'/CONNECTED/' in s_client.stdout"
+              - "'SSL handshake has read' in s_client.stdout"
+              - "'New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384' in s_client.stdout"
     - name: Ubuntu 18.04+, Redhat not container
       when: >
         not (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int == 18) and
@@ -147,10 +147,10 @@
           register: s_client2
         - name: Validate openssl s_client - EDH
           ansible.builtin.assert:
-            that: >
-              "'/CONNECTED/' in s_client2.stdout and
-               'Server Temp key: DH, 2048 bits' in s_client2.stdout and
-               'Server public key.*2048 bit' in s_client2.stdout"
+            that:
+              - "'/CONNECTED/' in s_client2.stdout"
+              - "'Server Temp key: DH, 2048 bits' in s_client2.stdout"
+              - "'Server public key.*2048 bit' in s_client2.stdout"
     - name: Ubuntu 18.04
       when: (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int == 18)
       block:
@@ -165,7 +165,7 @@
           register: s_client2
         - name: Focal | Validate openssl s_client - EDH
           ansible.builtin.assert:
-            that: >
-              "'/CONNECTED/' in s_client2.stdout and
-               'Server Temp Key: X25519, 253 bits' in s_client2.stdout and
-               'Server public key.*2048 bit' in s_client2.stdout"
+            that:
+              - "'/CONNECTED/' in s_client2.stdout"
+              - "'Server Temp Key: X25519, 253 bits' in s_client2.stdout"
+              - "'Server public key.*2048 bit' in s_client2.stdout"
