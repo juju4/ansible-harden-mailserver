@@ -116,6 +116,18 @@
   notify:
     - Restart postfix
 
+# To avoid postconf warning
+- name: Postfix | TLS hardening (line)
+  ansible.builtin.lineinfile:
+    dest: /etc/postfix/main.cf
+    mode: '0644'
+    regexp: "{{ item.re }}"
+    line: "{{ item.rep }}"
+  loop:
+    - { re: '^smtpd_tls_security_level\s*=.*',
+        rep: "smtpd_tls_security_level = {{ hardenmail_postfix_securitylevel }}"
+    }
+
 - name: Postfix | TLS hardening
   ansible.builtin.blockinfile:
     dest: /etc/postfix/main.cf
@@ -123,7 +135,6 @@
     content: |
       ## https://cipherli.st/
       smtp_use_tls = yes
-      smtpd_tls_security_level = {{ hardenmail_postfix_securitylevel }}
       smtpd_tls_auth_only = yes
       smtpd_tls_cert_file = {{ hardenmail_postfix_cert_file }}
       smtpd_tls_key_file = {{ hardenmail_postfix_key_file }}
