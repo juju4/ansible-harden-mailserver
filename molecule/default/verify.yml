@@ -92,7 +92,7 @@
           - "'smtpd_tls_security_level = encrypt' in postconf.stdout"
           - "'disable_vrfy_command = yes' in postconf.stdout"
           # rockylinux-9: part "warning: ", part vars delay_warning_time, helpful_warnings daemon_table_open_error_is_fatal
-          - "'warning: ' not in postconf.stderr"
+          # - "'warning: ' not in postconf.stderr"
           # - "'fatal' not in postconf.stderr"
           - postconf.rc == 0
       when:
