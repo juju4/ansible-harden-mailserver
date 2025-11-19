@@ -181,6 +181,6 @@
         - name: Validate openssl s_client
           ansible.builtin.assert:
             that:
-              - "'/CONNECTED/' in s_client.stdout"
+              - "'CONNECTED(' in s_client.stdout"
               - "'SSL handshake has read' in s_client.stdout"
-              - "'Protocol  : TLSv1.3' in s_client.stdout"
+              - "'Protocol: TLSv1.3' in s_client.stdout"
