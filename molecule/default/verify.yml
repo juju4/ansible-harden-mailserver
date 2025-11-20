@@ -2,6 +2,8 @@
 
 - name: Verify
   hosts: mailserver
+  vars:
+    is_container: false
   pre_tasks:
     - name: RedHat | Ensure pgrep is present
       ansible.builtin.package:
@@ -23,6 +25,13 @@
         verify_pkgs:
           - postfix-policyd-spf-python
       when: ansible_os_family == 'Debian'
+    - name: Set fact is_container
+      ansible.builtin.set_fact:
+        is_container: true
+      when: >
+        (ansible_virtualization_type is defined and
+          (ansible_virtualization_type == "docker" or ansible_virtualization_type == "containerd")
+        )
   tasks:
     - name: Gather package facts
       ansible.builtin.package_facts:
@@ -41,12 +50,8 @@
     - name: Validate ps output
       ansible.builtin.assert:
         that: ps.stdout | length > 0
-      when: >
-        not (
-          ansible_os_family == "RedHat" and ansible_virtualization_type is defined and (
-            ansible_virtualization_type == "docker" or ansible_virtualization_type == "containerd"
-          )
-        )
+      when:
+        - not is_container | bool
 
     - name: Ensure ports are listening
       ansible.builtin.wait_for:
@@ -55,12 +60,8 @@
         timeout: 10
       with_items:
         - { h: localhost, p: 25 }
-      when: >
-        not (
-          ansible_os_family == "RedHat" and ansible_virtualization_type is defined and (
-            ansible_virtualization_type == "docker" or ansible_virtualization_type == "containerd"
-          )
-        )
+      when:
+        - not is_container | bool
 
     - name: Fetch content of /etc/postfix/main.cf
       ansible.builtin.slurp:
@@ -99,13 +100,10 @@
         - ansible_os_family == "RedHat"
 
     - name: Ubuntu 20.04+ | Not container
-      when: >
-        not (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int == 18) and
-        not (
-          ansible_os_family == "RedHat" and ansible_virtualization_type is defined and (
-            ansible_virtualization_type == "docker" or ansible_virtualization_type == "containerd"
-          )
-        )
+      when:
+        - (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int >= 20) or
+          (ansible_distribution == "Debian" and ansible_distribution_major_version | int >= 12) or
+          (ansible_os_family == "RedHat" and not is_container)
       block:
         - name: Openssl s_client
           ansible.builtin.shell:
@@ -140,14 +138,11 @@
               - "'/CONNECTED/' in s_client.stdout"
               - "'SSL handshake has read' in s_client.stdout"
               - "'New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384' in s_client.stdout"
-    - name: Ubuntu 18.04+, Redhat not container
-      when: >
-        not (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int == 18) and
-        not (
-          ansible_os_family == "RedHat" and ansible_virtualization_type is defined and (
-            ansible_virtualization_type == "docker" or ansible_virtualization_type == "containerd"
-          )
-        )
+    - name: Ubuntu 22.04+, Redhat not container
+      when:
+        - (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int >= 22) or
+          (ansible_distribution == "Debian" and ansible_distribution_major_version | int >= 12) or
+          (ansible_os_family == "RedHat" and not is_container)
       block:
         - name: Openssl s_client - EDH
           ansible.builtin.shell:
@@ -161,8 +156,8 @@
         - name: Validate openssl s_client - EDH
           ansible.builtin.assert:
             that:
-              - "'/CONNECTED/' in s_client2.stdout"
-              - "'Server Temp key: DH, 2048 bits' in s_client2.stdout"
+              - "'CONNECTED(' in s_client2.stdout"
+              - "'Server Temp key: X25519, 253 bits' in s_client2.stdout"
               - "'Server public key.*2048 bit' in s_client2.stdout"
     - name: Ubuntu 18.04
       when: (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int == 18)
