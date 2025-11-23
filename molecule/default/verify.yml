@@ -28,10 +28,9 @@
     - name: Set fact is_container
       ansible.builtin.set_fact:
         is_container: true
-      when: >
-        (ansible_virtualization_type is defined and
-          (ansible_virtualization_type == "docker" or ansible_virtualization_type == "containerd")
-        )
+      when:
+        - ansible_virtualization_type is defined
+        - (ansible_virtualization_type == "docker" or ansible_virtualization_type == "containerd")
   tasks:
     - name: Gather package facts
       ansible.builtin.package_facts:
@@ -159,7 +158,7 @@
               - "'CONNECTED(' in s_client2.stdout"
               - "'Server Temp key: X25519, 253 bits' in s_client2.stdout"
               - "'Server public key.*2048 bit' in s_client2.stdout"
-    - name: Ubuntu 18.04
+    - name: Ubuntu 18.04 EDH
       when: (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int == 18)
       block:
         - name: Focal | openssl s_client - EDH
