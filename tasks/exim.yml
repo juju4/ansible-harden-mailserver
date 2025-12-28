@@ -4,7 +4,7 @@
 
 - name: Debian
   when:
-    - ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+    - ansible_facts['distribution'] == 'Debian' or ansible_facts['distribution'] == 'Ubuntu'
   block:
     - name: Debian | Install Postfix
       ansible.builtin.apt:
@@ -15,7 +15,7 @@
 
 - name: Exim Greylisting
   when:
-    - ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+    - ansible_facts['distribution'] == 'Debian' or ansible_facts['distribution'] == 'Ubuntu'
     - hardenmail_exim_greylist | bool
   block:
     - name: Debian | install greylisting package for Exim
@@ -26,7 +26,7 @@
 # https://wiki.debian.org/PkgExim4UserFAQ#Why_are_you_not_using_exim.27s_built-in_SPF_interface.3F
 - name: Exim SPF
   when:
-    - ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+    - ansible_facts['distribution'] == 'Debian' or ansible_facts['distribution'] == 'Ubuntu'
     - hardenmail_exim_spf is defined and hardenmail_exim_spf | bool
   block:
     - name: Debian | install SPF package for Exim

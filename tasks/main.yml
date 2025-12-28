@@ -2,15 +2,15 @@
 
 - name: Include for Debian.
   ansible.builtin.include_vars: "Debian.yml"
-  when: ansible_os_family == 'Debian'
+  when: ansible_facts['os_family'] == 'Debian'
 
 - name: Include variables for RedHat
   ansible.builtin.include_vars: "RedHat.yml"
-  when: ansible_os_family == "RedHat"
+  when: ansible_facts['os_family'] == "RedHat"
 
 - name: Include version-specific variables for Alpine
   ansible.builtin.include_vars: "Alpine.yml"
-  when: ansible_os_family == "Alpine"
+  when: ansible_facts['os_family'] == "Alpine"
 
 - name: Import postfix
   ansible.builtin.import_tasks: postfix.yml

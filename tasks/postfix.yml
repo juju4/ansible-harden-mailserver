@@ -4,7 +4,7 @@
 ## https://www.howtoforge.com/hardening-postfix-for-ispconfig-3
 
 - name: Debian
-  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+  when: ansible_facts['distribution'] == 'Debian' or ansible_facts['distribution'] == 'Ubuntu'
   block:
     - name: Debian | Install Postfix
       ansible.builtin.apt:
@@ -27,7 +27,7 @@
       when: hardenmail_postfix_greylist is defined and hardenmail_postfix_greylist
 
 - name: RedHat
-  when: ansible_os_family == "RedHat"
+  when: ansible_facts['os_family'] == "RedHat"
   block:
     - name: Redhat | Install Postfix
       ansible.builtin.dnf:
@@ -134,9 +134,9 @@
     marker: "# {mark} ANSIBLE MANAGED BLOCK: TLS hardening"
     content: |
       ## https://cipherli.st/
-      {% if (ansible_os_family == "Debian" and ansible_distribution_major_version | int < 13) or
-            (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int < 26) or
-            (ansible_os_family == "RedHat" and ansible_distribution_major_version | int < 10) %}
+      {% if (ansible_facts['os_family'] == "Debian" and ansible_facts['distribution_major_version'] | int < 13) or
+            (ansible_facts['distribution'] == "Ubuntu" and ansible_facts['distribution_major_version'] | int < 26) or
+            (ansible_facts['os_family'] == "RedHat" and ansible_facts['distribution_major_version'] | int < 10) %}
       smtp_use_tls = yes
       smtpd_use_tls = yes
       {% endif %}
@@ -177,7 +177,7 @@
     - Restart postfix
   when: >
     hardenmail_postfix_spf is defined and hardenmail_postfix_spf and
-    ansible_distribution_major_version|int < 8
+    ansible_facts['distribution_major_version']|int < 8
 
 ## + reject_invalid_hostname?
 - name: Hardening of postfix - SPF 2
@@ -195,7 +195,7 @@
     - Restart postfix
   when: >
     hardenmail_postfix_spf is defined and hardenmail_postfix_spf and
-    ansible_distribution_major_version|int < 8
+    ansible_facts['distribution_major_version']|int < 8
 
 - name: Hardening of postfix - SPF 3
   ansible.builtin.lineinfile:
@@ -211,7 +211,7 @@
     - Restart postfix
   when: >
     hardenmail_postfix_spf is defined and hardenmail_postfix_spf and
-    ansible_distribution_major_version|int < 8
+    ansible_facts['distribution_major_version']|int < 8
 
 - name: Hardening of postfix - Greylist
   ansible.builtin.replace:
@@ -228,4 +228,4 @@
     - Restart postfix
   when: >
     hardenmail_postfix_spf is defined and hardenmail_postfix_spf and
-    ansible_distribution_major_version|int < 8
+    ansible_facts['distribution_major_version']|int < 8
