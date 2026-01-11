@@ -42,7 +42,7 @@
     - name: Validate that needed packages are present
       ansible.builtin.assert:
         that:
-          - ansible_facts['facts'].packages[item] is defined
+          - ansible_facts.packages[item] is defined
       with_items: "{{ verify_pkgs }}"
 
     - name: Ensure process is running
