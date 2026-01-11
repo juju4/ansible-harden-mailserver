@@ -7,7 +7,7 @@
       ansible.builtin.package:
         name: procps-ng
         state: present
-      when: ansible_os_family == "RedHat" and ansible_distribution_major_version | int >= 8
+      when: ansible_facts['os_family'] == "RedHat" and ansible_facts['distribution_major_version'] | int >= 8
     - name: RedHat | set packages to validate
       ansible.builtin.set_fact:
         exim_user: root
@@ -15,12 +15,12 @@
         exim_conf: /etc/exim4/update-exim4.conf.conf
         verify_pkgs:
           - exim
-      when: ansible_os_family == "RedHat"
+      when: ansible_facts['os_family'] == "RedHat"
     - name: Debian | Ensure pgrep is present
       ansible.builtin.package:
         name: procps
         state: present
-      when: ansible_os_family == 'Debian'
+      when: ansible_facts['os_family'] == 'Debian'
     - name: Debian | set packages to validate
       ansible.builtin.set_fact:
         exim_user: Debian-exim
@@ -28,13 +28,13 @@
         exim_conf: /etc/exim4/update-exim4.conf.conf
         verify_pkgs:
           - spf-tools-perl
-      when: ansible_os_family == 'Debian'
+      when: ansible_facts['os_family'] == 'Debian'
     - name: Set fact is_container
       ansible.builtin.set_fact:
         is_container: true
       when:
-        - ansible_virtualization_type is defined
-        - (ansible_virtualization_type == "docker" or ansible_virtualization_type == "containerd")
+        - ansible_facts['virtualization_type'] is defined
+        - (ansible_facts['virtualization_type'] == "docker" or ansible_facts['virtualization_type'] == "containerd")
   tasks:
     - name: Gather package facts
       ansible.builtin.package_facts:
@@ -42,7 +42,7 @@
     - name: Validate that needed packages are present
       ansible.builtin.assert:
         that:
-          - ansible_facts.packages[item] is defined
+          - ansible_facts['facts'].packages[item] is defined
       with_items: "{{ verify_pkgs }}"
 
     - name: Ensure process is running
@@ -54,7 +54,7 @@
       ansible.builtin.assert:
         that: ps.stdout | length > 0
       when:
-        - not (ansible_os_family == "RedHat" and is_container | bool)
+        - not (ansible_facts['os_family'] == "RedHat" and is_container | bool)
 
     - name: Ensure ports are listening
       ansible.builtin.wait_for:
@@ -64,7 +64,7 @@
       with_items:
         - { h: localhost, p: 25 }
       when:
-        - not (ansible_os_family == "RedHat" and is_container | bool)
+        - not (ansible_facts['os_family'] == "RedHat" and is_container | bool)
 
     - name: Fetch content of exim conf
       ansible.builtin.slurp:
@@ -78,9 +78,9 @@
 
     - name: Ubuntu 18.04+ | Not container
       when:
-        - not (ansible_distribution == "Debian" and ansible_distribution_major_version | int >= 13)
-        - not (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int == 18)
-        - not (ansible_os_family == "RedHat" and is_container | bool)
+        - not (ansible_facts['distribution'] == "Debian" and ansible_facts['distribution_major_version'] | int >= 13)
+        - not (ansible_facts['distribution'] == "Ubuntu" and ansible_facts['distribution_major_version'] | int == 18)
+        - not (ansible_facts['os_family'] == "RedHat" and is_container | bool)
       block:
         - name: Openssl s_client
           ansible.builtin.shell:
@@ -98,7 +98,7 @@
               - "'SSL handshake has read' in s_client.stdout"
               - "'Protocol  : TLSv1.2' in s_client.stdout"
     - name: Ubuntu 18.04
-      when: (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int == 18)
+      when: (ansible_facts['distribution'] == "Ubuntu" and ansible_facts['distribution_major_version'] | int == 18)
       block:
         - name: Focal | openssl s_client
           ansible.builtin.shell:
@@ -117,9 +117,9 @@
               - "'New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384' in s_client.stdout"
     - name: Ubuntu 22.04+, Redhat not container
       when:
-        - (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int >= 22) or
-          (ansible_distribution == "Debian" and ansible_distribution_major_version | int >= 12) or
-          (ansible_os_family == "RedHat" and not is_container)
+        - (ansible_facts['distribution'] == "Ubuntu" and ansible_facts['distribution_major_version'] | int >= 22) or
+          (ansible_facts['distribution'] == "Debian" and ansible_facts['distribution_major_version'] | int >= 12) or
+          (ansible_facts['os_family'] == "RedHat" and not is_container)
       block:
         - name: Openssl s_client - EDH
           ansible.builtin.shell:
@@ -138,7 +138,7 @@
               - "'Protocol: TLSv1.3' in s_client2.stdout"
               - "'This TLS version forbids renegotiation.' in s_client2.stdout"
     - name: Ubuntu 18.04 EDH
-      when: (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int == 18)
+      when: (ansible_facts['distribution'] == "Ubuntu" and ansible_facts['distribution_major_version'] | int == 18)
       block:
         - name: Focal | openssl s_client - EDH
           ansible.builtin.shell:
@@ -157,7 +157,7 @@
               - "'Server public key.*2048 bit' in s_client2.stdout"
     - name: Debian 13+ exim
       when:
-        - (ansible_distribution == "Debian" and ansible_distribution_major_version | int >= 13)
+        - (ansible_facts['distribution'] == "Debian" and ansible_facts['distribution_major_version'] | int >= 13)
       block:
         - name: Openssl s_client
           ansible.builtin.shell:
