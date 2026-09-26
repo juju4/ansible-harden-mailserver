@@ -1,7 +1,7 @@
-[![Actions Status - Master](https://github.com/juju4/ansible-harden-mailserver/workflows/AnsibleCI/badge.svg)](https://github.com/juju4/ansible-harden-mailserver/actions?query=branch%3Amaster)
-[![Actions Status - Devel](https://github.com/juju4/ansible-harden-mailserver/workflows/AnsibleCI/badge.svg?branch=devel)](https://github.com/juju4/ansible-harden-mailserver/actions?query=branch%3Adevel)
-
 # Mailserver hardening ansible role
+
+[![Actions Status - Main](https://github.com/juju4/ansible-harden-mailserver/workflows/AnsibleCI/badge.svg)](https://github.com/juju4/ansible-harden-mailserver/actions?query=branch%3Amain)
+[![Actions Status - Devel](https://github.com/juju4/ansible-harden-mailserver/workflows/AnsibleCI/badge.svg?branch=devel)](https://github.com/juju4/ansible-harden-mailserver/actions?query=branch%3Adevel)
 
 Ansible role to harden mailserver system.
 Currently only Postfix.
